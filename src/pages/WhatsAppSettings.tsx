@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import PageTransition from '@/components/PageTransition'
-import { MessageSquare, Check, X, Loader2, Save, Zap, ShieldCheck, Wifi, AlertTriangle, Globe, Copy, Plus, Trash2, Upload } from 'lucide-react'
+import { MessageSquare, Check, X, Loader2, Save, Zap, ShieldCheck, Wifi, AlertTriangle, Globe, Copy, Plus, Trash2, Upload, Store } from 'lucide-react'
 import { toast } from 'sonner'
 import { useAuth } from '@/providers/AuthProvider'
 import { buildPublicSiteUrl } from '@/lib/site'
@@ -21,9 +21,13 @@ const DAY_CONFIG = [
   { key: 'domingo', label: 'Domingo' },
 ]
 
+interface ShopOption { id: string; name: string }
+
 function WhatsAppSettings() {
-  const { shop, loading: shopLoading } = useAuth()
+  const { shop, loading: shopLoading, isAdmin } = useAuth()
   const [config, setConfig] = useState<WhatsAppConfig | null>(null)
+  const [allShops, setAllShops] = useState<ShopOption[]>([])
+  const [selectedShopId, setSelectedShopId] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [testing, setTesting] = useState(false)
@@ -42,14 +46,24 @@ function WhatsAppSettings() {
   const [savingSite, setSavingSite] = useState(false)
   const [copiedLink, setCopiedLink] = useState(false)
 
+  const targetShopId = selectedShopId || shop?.id
+
+  // Admin without a shop: load all shops for selection
+  useEffect(() => {
+    if (!isAdmin || shop) return
+    supabase.rpc('admin_get_all_shops').then(({ data }) => {
+      if (data) setAllShops(data as ShopOption[])
+    })
+  }, [isAdmin, shop])
+
   useEffect(() => {
     load()
-  }, [shop?.id, shopLoading])
+  }, [targetShopId, shopLoading])
 
   async function load() {
     try {
       if (shopLoading) return
-      if (!shop) {
+      if (!targetShopId) {
         setConfig(null)
         setLoading(false)
         return
@@ -59,12 +73,12 @@ function WhatsAppSettings() {
           .from('whatsapp_configs')
           .select('*')
           .eq('active', true)
-          .eq('shop_id', shop.id)
+          .eq('shop_id', targetShopId)
           .maybeSingle(),
         supabase
           .from('shops')
           .select('instagram, hero_photo, gallery_photos, working_hours')
-          .eq('id', shop.id)
+          .eq('id', targetShopId)
           .single(),
       ])
 
@@ -99,14 +113,14 @@ function WhatsAppSettings() {
 
   async function save() {
     if (!serverUrl.trim() || !apiKey.trim() || !instanceName.trim()) return
-    if (!shop) {
-      toast.error('Barbearia ainda não carregada')
+    if (!targetShopId) {
+      toast.error('Selecione uma barbearia')
       return
     }
     setSaving(true)
 
     const payload = {
-      shop_id: shop.id,
+      shop_id: targetShopId,
       server_url: serverUrl.replace(/\/$/, ''),
       instance_name: instanceName.trim(),
       api_key: apiKey.trim(),
@@ -164,7 +178,7 @@ function WhatsAppSettings() {
   }
 
   async function saveSiteSettings() {
-    if (!shop) return
+    if (!targetShopId) return
     setSavingSite(true)
 
     const workingHours: Record<string, string> = {}
@@ -182,7 +196,7 @@ function WhatsAppSettings() {
         gallery_photos: siteGalleryPhotos.filter((u) => u.trim()).length > 0 ? siteGalleryPhotos.filter((u) => u.trim()) : null,
         working_hours: Object.keys(workingHours).length > 0 ? workingHours : null,
       })
-      .eq('id', shop.id)
+      .eq('id', targetShopId)
 
     if (error) {
       toast.error('Erro ao salvar configurações do site')
@@ -218,6 +232,23 @@ function WhatsAppSettings() {
             {connectionState.label}
           </div>
         </div>
+
+        {/* Admin shop selector */}
+        {isAdmin && !shop && allShops.length > 0 && !targetShopId && (
+          <div className="mb-6 flex flex-wrap items-center gap-3 rounded-2xl border border-indigo-500/10 bg-indigo-500/5 p-4">
+            <Store className="size-5 text-indigo-500" />
+            <select
+              className="flex-1 rounded-xl border border-indigo-500/20 bg-card px-3 py-2 text-sm focus:ring-indigo-500"
+              value=""
+              onChange={(e) => setSelectedShopId(e.target.value)}
+            >
+              <option value="">Selecione uma barbearia...</option>
+              {allShops.map((s) => (
+                <option key={s.id} value={s.id}>{s.name}</option>
+              ))}
+            </select>
+          </div>
+        )}
 
         {loading ? (
           <div className="grid gap-6 lg:grid-cols-2">
