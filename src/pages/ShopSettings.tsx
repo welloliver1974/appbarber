@@ -19,6 +19,7 @@ import PageTransition from '@/components/PageTransition'
 import { Settings, Save, Loader2, Upload, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { useAuth } from '@/providers/AuthProvider'
+import { Navigate } from 'react-router-dom'
 import { uploadLogoPhoto, deletePhoto } from '@/lib/storage'
 
 // ─── Schema ────────────────────────────────────────────────────────────────────
@@ -38,7 +39,12 @@ type ShopFormValues = z.infer<typeof shopSchema>
 // ─── Component ─────────────────────────────────────────────────────────────────
 
 function ShopSettings() {
-  const { shop, refreshShop } = useAuth()
+  const { shop, refreshShop, isAdmin } = useAuth()
+
+  // Admin sem loja não tem o que configurar aqui — redireciona pro painel admin
+  if (isAdmin && !shop) {
+    return <Navigate to="/admin" replace />
+  }
 
   const form = useForm<ShopFormValues>({
     resolver: zodResolver(shopSchema),
