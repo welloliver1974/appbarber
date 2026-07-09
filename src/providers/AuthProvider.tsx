@@ -4,11 +4,14 @@ import type { User } from '@supabase/supabase-js'
 import type { Shop } from '@/types/database'
 import { resolveActiveShop } from '@/lib/shop'
 
+const ADMIN_EMAILS = ['welloliver@gmail.com']
+
 interface AuthContextType {
   user: User | null
   shop: Shop | null
   loading: boolean
   error: string | null
+  isAdmin: boolean
   signIn: (email: string, password: string) => Promise<void>
   signUp: (email: string, password: string) => Promise<void>
   signOut: () => Promise<void>
@@ -23,6 +26,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [shop, setShop] = useState<Shop | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+
+  const isAdmin = user ? ADMIN_EMAILS.includes(user.email ?? '') : false
 
   async function loadShop(sessionUser: User | null) {
     try {
@@ -83,7 +88,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, shop, loading, error, signIn, signUp, signOut, refreshShop, clearError }}>
+    <AuthContext.Provider value={{ user, shop, loading, error, isAdmin, signIn, signUp, signOut, refreshShop, clearError }}>
       {children}
     </AuthContext.Provider>
   )

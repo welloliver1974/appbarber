@@ -12,6 +12,7 @@ import Reports from '@/pages/Reports'
 import PublicSite from '@/pages/PublicSite'
 import ManageBooking from '@/pages/ManageBooking'
 import ShopSettings from '@/pages/ShopSettings'
+import AdminPage from '@/pages/AdminPage'
 import { shouldRenderPublicSite } from '@/lib/site'
 
 function App() {
@@ -35,6 +36,7 @@ function App() {
           <Route path="/whatsapp" element={<WhatsAppSettings />} />
           <Route path="/reports" element={<Reports />} />
           <Route path="/settings" element={<ShopSettings />} />
+          <Route path="/admin" element={<AdminPage />} />
         </Route>
       </Routes>
     </BrowserRouter>

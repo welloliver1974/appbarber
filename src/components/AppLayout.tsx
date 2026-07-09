@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { Outlet, useNavigate, useLocation, Navigate } from 'react-router-dom'
 import { useAuth } from '@/providers/AuthProvider'
 import { useTheme } from '@/hooks/useTheme'
@@ -7,9 +7,9 @@ import { buildPublicSiteUrl } from '@/lib/site'
 import { useWhatsAppStatus } from '@/hooks/useWhatsAppStatus'
 import ShopSetup from '@/components/ShopSetup'
 import { Loader2 } from 'lucide-react'
-import { Sun, Moon, LogOut, Scissors, Calendar, Users, LayoutDashboard, MessageSquare, Menu, X, Contact, BarChart3, Globe, Settings } from 'lucide-react'
+import { Sun, Moon, LogOut, Scissors, Calendar, Users, LayoutDashboard, MessageSquare, Menu, X, Contact, BarChart3, Globe, Settings, ShieldCheck } from 'lucide-react'
 
-const navItems = [
+const baseNavItems = [
   { href: '/', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/barbers', label: 'Barbeiros', icon: Users },
   { href: '/services', label: 'Serviços', icon: Scissors },
@@ -17,16 +17,21 @@ const navItems = [
   { href: '/appointments', label: 'Agendamentos', icon: Calendar },
   { href: '/reports', label: 'Relatórios', icon: BarChart3 },
   { href: '/whatsapp', label: 'WhatsApp', icon: MessageSquare },
+]
+
+const adminNavItems = [
+  { href: '/admin', label: 'Admin', icon: ShieldCheck },
   { href: '/settings', label: 'Configurações', icon: Settings },
 ]
 
 function AppLayout() {
-  const { user, shop, loading, signOut } = useAuth()
+  const { user, shop, loading, isAdmin, signOut } = useAuth()
   const { theme, toggleTheme } = useTheme()
   const navigate = useNavigate()
   const location = useLocation()
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const { state: waState } = useWhatsAppStatus(shop?.id)
+  const navItems = useMemo(() => isAdmin ? [...baseNavItems, ...adminNavItems] : baseNavItems, [isAdmin])
 
   if (!user) {
     return <Navigate to="/login" replace />

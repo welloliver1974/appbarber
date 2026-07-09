@@ -54,7 +54,51 @@ create policy "Users can delete own shop"
   on shops for delete
   using (is_shop_owner(id));
 
--- 4. Se existir uma loja sem public_slug, gerar um
+-- 4. Tabela de admins do SaaS
+create table if not exists admins (
+  user_id uuid primary key references auth.users(id) on delete cascade,
+  created_at timestamptz default now()
+);
+
+alter table admins enable row level security;
+
+drop policy if exists "Admins can read admins" on admins;
+create policy "Admins can read admins"
+  on admins for select
+  using (auth.role() = 'authenticated');
+
+-- Função para verificar se usuário é admin
+create or replace function public.is_admin()
+returns boolean
+language sql
+stable
+security definer
+as $$
+  select exists (select 1 from admins where user_id = auth.uid())
+$$;
+
+-- Inserir admin inicial (welloliver@gmail.com)
+-- O UUID precisa ser substituído pelo ID real do usuário no seu projeto
+-- Busque em: Authentication > Users
+-- insert into admins (user_id) values ('SUBSTITUA_PELO_UUID_DO_ADMIN');
+
+-- 5. Atualizar política SELECT para admin ver todas as lojas
+drop policy if exists "Users can read own shop" on shops;
+create policy "Users can read own shop"
+  on shops for select
+  using (
+    can_view_shop(id)
+    or (auth.role() = 'authenticated' and owner_user_id is null)
+    or public.is_admin()
+  );
+
+-- 6. Atualizar política DELETE para admin poder excluir qualquer loja
+drop policy if exists "Users can delete own shop" on shops;
+create policy "Users can delete own shop"
+  on shops for delete
+  using (public.is_shop_owner(id) or public.is_admin());
+
+-- 7. Se existir uma loja sem public_slug, gerar um
 update shops
 set public_slug = 'barbearia-' || substr(replace(gen_random_uuid()::text, '-', ''), 1, 8)
 where public_slug is null;
