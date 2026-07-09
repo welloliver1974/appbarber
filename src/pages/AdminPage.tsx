@@ -27,12 +27,14 @@ function AdminPage() {
 
   async function loadShops() {
     setLoading(true)
-    const { data } = await supabase
-      .from('shops')
-      .select('*')
-      .order('created_at', { ascending: false })
+    const { data, error } = await supabase.rpc('admin_get_all_shops')
 
-    if (data) setShops(data as ShopRow[])
+    if (error) {
+      toast.error('Erro ao carregar lojas: ' + error.message)
+      setShops([])
+    } else if (data) {
+      setShops(data as ShopRow[])
+    }
     setLoading(false)
   }
 
@@ -44,12 +46,10 @@ function AdminPage() {
     if (!trimmed || trimmed.length < 2) return
 
     setSaving(true)
-    const { error } = await supabase
-      .from('shops')
-      .insert({
-        name: trimmed,
-        owner_user_id: ownerId.trim() || null,
-      })
+    const { error } = await supabase.rpc('admin_create_shop', {
+      shop_name: trimmed,
+      owner_id: ownerId.trim() || null,
+    })
 
     if (error) {
       toast.error('Erro ao criar: ' + error.message)
@@ -65,7 +65,7 @@ function AdminPage() {
 
   async function handleDelete(id: string) {
     if (!confirm('Excluir esta barbearia? Todos os dados associados serão perdidos.')) return
-    const { error } = await supabase.from('shops').delete().eq('id', id)
+    const { error } = await supabase.rpc('admin_delete_shop', { shop_id: id })
     if (error) {
       toast.error('Erro ao excluir: ' + error.message)
     } else {
@@ -147,6 +147,7 @@ function AdminPage() {
           <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
             <Store className="mb-3 size-12 opacity-30" />
             <p>Nenhuma barbearia cadastrada</p>
+            <p className="mt-1 text-xs">Clique em "Nova Barbearia" para criar a primeira.</p>
           </div>
         ) : (
           <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">

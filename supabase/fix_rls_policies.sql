@@ -72,7 +72,72 @@ create policy "Users can delete own shop"
   on shops for delete
   using (public.is_shop_owner(id) or public.is_admin());
 
--- ─── 5. public_slug para lojas existentes ────────────────────
+-- ─── 5. Funções RPC para o admin (bypass RLS via security definer) ─
+-- O admin (welloliver@gmail.com) usa estas funções no painel Admin
+-- para ver todas as lojas e criar novas, sem depender de RLS.
+
+create or replace function public.admin_get_all_shops()
+returns json
+language plpgsql
+security definer
+as $$
+declare
+  admin_email text;
+  result json;
+begin
+  -- Verifica se o usuário logado é admin
+  select email into admin_email from auth.users where id = auth.uid();
+  if admin_email is distinct from 'welloliver@gmail.com' then
+    raise exception 'Unauthorized';
+  end if;
+
+  select json_agg(row_to_json(s)) into result
+  from (select * from shops order by created_at desc) s;
+
+  return coalesce(result, '[]'::json);
+end;
+$$;
+
+create or replace function public.admin_create_shop(shop_name text, owner_id text default null)
+returns json
+language plpgsql
+security definer
+as $$
+declare
+  admin_email text;
+  new_shop shops;
+begin
+  select email into admin_email from auth.users where id = auth.uid();
+  if admin_email is distinct from 'welloliver@gmail.com' then
+    raise exception 'Unauthorized';
+  end if;
+
+  insert into shops (name, owner_user_id)
+  values (shop_name, nullif(owner_id, '')::uuid)
+  returning * into new_shop;
+
+  return row_to_json(new_shop);
+end;
+$$;
+
+create or replace function public.admin_delete_shop(shop_id uuid)
+returns void
+language plpgsql
+security definer
+as $$
+declare
+  admin_email text;
+begin
+  select email into admin_email from auth.users where id = auth.uid();
+  if admin_email is distinct from 'welloliver@gmail.com' then
+    raise exception 'Unauthorized';
+  end if;
+
+  delete from shops where id = shop_id;
+end;
+$$;
+
+-- ─── 6. public_slug para lojas existentes ────────────────────
 update shops
 set public_slug = 'barbearia-' || substr(replace(gen_random_uuid()::text, '-', ''), 1, 8)
 where public_slug is null;
