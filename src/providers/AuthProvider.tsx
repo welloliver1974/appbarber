@@ -2,16 +2,19 @@ import { createContext, useContext, useEffect, useState, type ReactNode } from '
 import { supabase } from '@/lib/supabase'
 import type { User } from '@supabase/supabase-js'
 import type { Shop } from '@/types/database'
-import { resolveActiveShop } from '@/lib/shop'
+import { resolveActiveShop, createShop } from '@/lib/shop'
 
 interface AuthContextType {
   user: User | null
   shop: Shop | null
   loading: boolean
+  error: string | null
   signIn: (email: string, password: string) => Promise<void>
   signUp: (email: string, password: string) => Promise<void>
   signOut: () => Promise<void>
   refreshShop: () => Promise<void>
+  clearError: () => void
+  setupShop: (name: string) => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextType | null>(null)
@@ -20,15 +23,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [shop, setShop] = useState<Shop | null>(null)
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   async function loadShop(sessionUser: User | null) {
     try {
+      setError(null)
       if (!sessionUser) {
         setShop(null)
         return
       }
       const currentShop = await resolveActiveShop(sessionUser)
       setShop(currentShop)
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Erro ao carregar barbearia'
+      console.error('[AuthProvider] loadShop error:', err)
+      setError(message)
     } finally {
       setLoading(false)
     }
@@ -70,8 +79,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await loadShop(user)
   }
 
+  function clearError() {
+    setError(null)
+  }
+
+  async function setupShop(name: string) {
+    if (!user) throw new Error('Usuário não autenticado')
+    setLoading(true)
+    setError(null)
+    try {
+      const created = await createShop(user.id, name)
+      setShop(created)
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Erro ao criar barbearia'
+      setError(message)
+      throw err
+    } finally {
+      setLoading(false)
+    }
+  }
+
   return (
-    <AuthContext.Provider value={{ user, shop, loading, signIn, signUp, signOut, refreshShop }}>
+    <AuthContext.Provider value={{ user, shop, loading, error, signIn, signUp, signOut, refreshShop, clearError, setupShop }}>
       {children}
     </AuthContext.Provider>
   )

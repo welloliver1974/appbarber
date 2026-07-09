@@ -3,17 +3,6 @@ import { supabase } from '@/lib/supabase'
 import type { Shop } from '@/types/database'
 import { buildPublicSlug } from '@/lib/site'
 
-function formatFallbackShopName(email?: string | null) {
-  if (!email) return 'Minha barbearia'
-  const localPart = email.split('@')[0] ?? ''
-  const cleaned = localPart
-    .replace(/[._-]+/g, ' ')
-    .trim()
-    .replace(/\s+/g, ' ')
-  if (!cleaned) return 'Minha barbearia'
-  return cleaned.replace(/\b\w/g, (c) => c.toUpperCase())
-}
-
 export async function resolveActiveShop(user: User | null): Promise<Shop | null> {
   if (user) {
     const { data: existing, error: readError } = await supabase
@@ -32,8 +21,10 @@ export async function resolveActiveShop(user: User | null): Promise<Shop | null>
           .maybeSingle()
 
         if (fallback) return fallback as Shop
+        return null
       }
-      throw readError
+      console.error('[resolveActiveShop] Error reading shops:', readError)
+      return null
     }
 
     if (existing) {
@@ -65,7 +56,9 @@ export async function resolveActiveShop(user: User | null): Promise<Shop | null>
       .limit(1)
       .maybeSingle()
 
-    if (fallbackError) throw fallbackError
+    if (fallbackError) {
+      console.error('[resolveActiveShop] Error reading unowned shops:', fallbackError)
+    }
 
     if (unownedShop) {
       try {
@@ -84,20 +77,7 @@ export async function resolveActiveShop(user: User | null): Promise<Shop | null>
       return unownedShop as Shop
     }
 
-    const { data: created, error: createError } = await supabase
-      .from('shops')
-      .insert({
-        owner_user_id: user.id,
-        name: formatFallbackShopName(user.email),
-        phone: null,
-        address: null,
-        logo_url: null,
-      })
-      .select('*')
-      .single()
-
-    if (createError) throw createError
-    return created as Shop
+    return null
   }
 
   const { data: firstShop, error } = await supabase
@@ -107,6 +87,27 @@ export async function resolveActiveShop(user: User | null): Promise<Shop | null>
     .limit(1)
     .maybeSingle()
 
-  if (error) throw error
+  if (error) {
+    console.error('[resolveActiveShop] Error reading first shop:', error)
+    return null
+  }
   return (firstShop as Shop | null) ?? null
+}
+
+export async function createShop(userId: string, name: string): Promise<Shop> {
+  const { data: created, error: createError } = await supabase
+    .from('shops')
+    .insert({
+      owner_user_id: userId,
+      name: name.trim(),
+    })
+    .select('*')
+    .single()
+
+  if (createError) {
+    console.error('[createShop] Error:', createError)
+    throw new Error(`Erro ao criar barbearia: ${createError.message}`)
+  }
+
+  return created as Shop
 }

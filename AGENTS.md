@@ -163,3 +163,11 @@ src/
 - **⚠️ PENDENTE:** Todas as 3 migrations + 2 edge function deploys + push precisam ser executados manualmente (ver `ROADMAP.md` Fase 0)
 - **✅ RESOLVIDO:** `ShopSettings.tsx` migrado para React Hook Form + Zod; `src/components/ui/form.tsx` criado (shadcn Form sem deps externas)
 
+### Sessão 11 — Correção do Fluxo de Cadastro de Barbearia (2026-07-09)
+- **supabase/fix_rls_policies.sql:** **CRIADO** — SQL de correção das políticas RLS (permitir SELECT/UPDATE de lojas sem dono, adicionar colunas faltantes, gerar public_slug)
+- **src/lib/shop.ts:** `resolveActiveShop` refatorado — não lança mais erros (retorna null), não auto-cria loja; nova função `createShop(userId, name)` exportada
+- **src/providers/AuthProvider.tsx:** Adicionado estado `error`, função `setupShop(name)` e `clearError()`; tratativa de erro com try/catch no loadShop
+- **src/components/ShopSetup.tsx:** **CRIADO** — tela de onboarding com formulário para criar barbearia quando nenhuma existe
+- **src/components/AppLayout.tsx:** Guardas: loading → mostra spinner; shop null → mostra ShopSetup; só renderiza app com shop pronto
+- **fix:** Correção do erro 403 (RLS) que impedia cadastro/edição de barbearia; build validado com sucesso
+

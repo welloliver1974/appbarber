@@ -5,6 +5,8 @@ import { useTheme } from '@/hooks/useTheme'
 import { Button } from '@/components/ui/button'
 import { buildPublicSiteUrl } from '@/lib/site'
 import { useWhatsAppStatus } from '@/hooks/useWhatsAppStatus'
+import ShopSetup from '@/components/ShopSetup'
+import { Loader2 } from 'lucide-react'
 import { Sun, Moon, LogOut, Scissors, Calendar, Users, LayoutDashboard, MessageSquare, Menu, X, Contact, BarChart3, Globe, Settings } from 'lucide-react'
 
 const navItems = [
@@ -19,7 +21,7 @@ const navItems = [
 ]
 
 function AppLayout() {
-  const { user, shop, signOut } = useAuth()
+  const { user, shop, loading, signOut } = useAuth()
   const { theme, toggleTheme } = useTheme()
   const navigate = useNavigate()
   const location = useLocation()
@@ -28,6 +30,18 @@ function AppLayout() {
 
   if (!user) {
     return <Navigate to="/login" replace />
+  }
+
+  if (loading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-indigo-900 via-indigo-950 to-slate-900">
+        <Loader2 className="size-8 animate-spin text-indigo-500" />
+      </div>
+    )
+  }
+
+  if (!shop) {
+    return <ShopSetup />
   }
 
   return (
