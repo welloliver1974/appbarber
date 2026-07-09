@@ -16,12 +16,12 @@ const baseNavItems = [
   { href: '/clients', label: 'Clientes', icon: Contact },
   { href: '/appointments', label: 'Agendamentos', icon: Calendar },
   { href: '/reports', label: 'Relatórios', icon: BarChart3 },
-  { href: '/whatsapp', label: 'WhatsApp', icon: MessageSquare },
 ]
 
 const adminNavItems = [
   { href: '/admin', label: 'Admin', icon: ShieldCheck },
   { href: '/settings', label: 'Configurações', icon: Settings },
+  { href: '/whatsapp', label: 'WhatsApp', icon: MessageSquare },
 ]
 
 function NoShopPage({ user, signOut }: { user: import('@supabase/supabase-js').User; signOut: () => Promise<void> }) {
@@ -144,8 +144,8 @@ function AppLayout() {
           ) : null}
         </nav>
 
-        {/* WhatsApp Status Badge */}
-        {waState !== 'loading' && waState !== 'unknown' && (
+        {/* WhatsApp Status Badge — só admin */}
+        {isAdmin && waState !== 'loading' && waState !== 'unknown' && (
           <button
             onClick={() => { navigate('/whatsapp'); setSidebarOpen(false) }}
             title={waState === 'connected' ? 'WhatsApp conectado' : 'WhatsApp desconectado — clique para configurar'}
