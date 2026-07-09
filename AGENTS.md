@@ -165,9 +165,10 @@ src/
 
 ### Sessão 11 — Correção do Fluxo de Cadastro de Barbearia (2026-07-09)
 - **supabase/fix_rls_policies.sql:** **CRIADO** — SQL de correção das políticas RLS (permitir SELECT/UPDATE de lojas sem dono, adicionar colunas faltantes, gerar public_slug)
-- **src/lib/shop.ts:** `resolveActiveShop` refatorado — não lança mais erros (retorna null), não auto-cria loja; nova função `createShop(userId, name)` exportada
-- **src/providers/AuthProvider.tsx:** Adicionado estado `error`, função `setupShop(name)` e `clearError()`; tratativa de erro com try/catch no loadShop
-- **src/components/ShopSetup.tsx:** **CRIADO** — tela de onboarding com formulário para criar barbearia quando nenhuma existe
-- **src/components/AppLayout.tsx:** Guardas: loading → mostra spinner; shop null → mostra ShopSetup; só renderiza app com shop pronto
+- **src/lib/shop.ts:** `resolveActiveShop` simplificado — só busca por `owner_user_id`, sem auto-criar ou assumir loja
+- **src/providers/AuthProvider.tsx:** Adicionado estado `error` e `clearError()`; tratativa de erro com try/catch no loadShop
+- **src/components/ShopSetup.tsx:** **CRIADO** — tela informativa quando não há barbearia (contate o admin)
+- **src/components/AppLayout.tsx:** Guardas: loading → spinner; shop null → ShopSetup; só renderiza app com shop pronto
 - **fix:** Correção do erro 403 (RLS) que impedia cadastro/edição de barbearia; build validado com sucesso
+- **Modelo:** Admin cria barbearias manualmente no Supabase Dashboard (INSERT com `owner_user_id` do cliente)
 

@@ -2,7 +2,7 @@ import { createContext, useContext, useEffect, useState, type ReactNode } from '
 import { supabase } from '@/lib/supabase'
 import type { User } from '@supabase/supabase-js'
 import type { Shop } from '@/types/database'
-import { resolveActiveShop, createShop } from '@/lib/shop'
+import { resolveActiveShop } from '@/lib/shop'
 
 interface AuthContextType {
   user: User | null
@@ -14,7 +14,6 @@ interface AuthContextType {
   signOut: () => Promise<void>
   refreshShop: () => Promise<void>
   clearError: () => void
-  setupShop: (name: string) => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextType | null>(null)
@@ -83,24 +82,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setError(null)
   }
 
-  async function setupShop(name: string) {
-    if (!user) throw new Error('Usuário não autenticado')
-    setLoading(true)
-    setError(null)
-    try {
-      const created = await createShop(user.id, name)
-      setShop(created)
-    } catch (err) {
-      const message = err instanceof Error ? err.message : 'Erro ao criar barbearia'
-      setError(message)
-      throw err
-    } finally {
-      setLoading(false)
-    }
-  }
-
   return (
-    <AuthContext.Provider value={{ user, shop, loading, error, signIn, signUp, signOut, refreshShop, clearError, setupShop }}>
+    <AuthContext.Provider value={{ user, shop, loading, error, signIn, signUp, signOut, refreshShop, clearError }}>
       {children}
     </AuthContext.Provider>
   )
