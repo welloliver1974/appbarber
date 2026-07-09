@@ -76,3 +76,23 @@ export async function deletePhoto(publicUrl: string): Promise<boolean> {
 
   return true
 }
+
+export async function uploadLogoPhoto(shopId: string, file: File): Promise<string | null> {
+  const ext = file.name.split('.').pop() || 'jpg'
+  const path = `${shopId}/logo.${ext}`
+
+  const { error } = await supabase.storage
+    .from(GALLERY_BUCKET)
+    .upload(path, file, { upsert: true })
+
+  if (error) {
+    console.error('[Storage] Erro ao upload logo:', error.message)
+    return null
+  }
+
+  const { data: urlData } = supabase.storage
+    .from(GALLERY_BUCKET)
+    .getPublicUrl(path)
+
+  return urlData?.publicUrl ?? null
+}

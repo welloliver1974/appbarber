@@ -4,7 +4,8 @@ import { useAuth } from '@/providers/AuthProvider'
 import { useTheme } from '@/hooks/useTheme'
 import { Button } from '@/components/ui/button'
 import { buildPublicSiteUrl } from '@/lib/site'
-import { Sun, Moon, LogOut, Scissors, Calendar, Users, LayoutDashboard, MessageSquare, Menu, X, Contact, BarChart3, Globe } from 'lucide-react'
+import { useWhatsAppStatus } from '@/hooks/useWhatsAppStatus'
+import { Sun, Moon, LogOut, Scissors, Calendar, Users, LayoutDashboard, MessageSquare, Menu, X, Contact, BarChart3, Globe, Settings } from 'lucide-react'
 
 const navItems = [
   { href: '/', label: 'Dashboard', icon: LayoutDashboard },
@@ -14,14 +15,16 @@ const navItems = [
   { href: '/appointments', label: 'Agendamentos', icon: Calendar },
   { href: '/reports', label: 'Relatórios', icon: BarChart3 },
   { href: '/whatsapp', label: 'WhatsApp', icon: MessageSquare },
+  { href: '/settings', label: 'Configurações', icon: Settings },
 ]
 
-    function AppLayout() {
+function AppLayout() {
   const { user, shop, signOut } = useAuth()
   const { theme, toggleTheme } = useTheme()
   const navigate = useNavigate()
   const location = useLocation()
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const { state: waState } = useWhatsAppStatus(shop?.id)
 
   if (!user) {
     return <Navigate to="/login" replace />
@@ -75,6 +78,25 @@ const navItems = [
             </Button>
           ) : null}
         </nav>
+
+        {/* WhatsApp Status Badge */}
+        {waState !== 'loading' && waState !== 'unknown' && (
+          <button
+            onClick={() => { navigate('/whatsapp'); setSidebarOpen(false) }}
+            title={waState === 'connected' ? 'WhatsApp conectado' : 'WhatsApp desconectado — clique para configurar'}
+            className={`mb-2 flex w-full items-center gap-2 rounded-lg px-3 py-2 text-xs font-medium transition-all duration-200 ${
+              waState === 'connected'
+                ? 'bg-emerald-500/15 text-emerald-300 hover:bg-emerald-500/25'
+                : 'bg-red-500/15 text-red-300 hover:bg-red-500/25 animate-pulse'
+            }`}
+          >
+            <span className={`size-2 rounded-full flex-shrink-0 ${
+              waState === 'connected' ? 'bg-emerald-400' : 'bg-red-400'
+            }`} />
+            <MessageSquare className="size-3 flex-shrink-0" />
+            {waState === 'connected' ? 'WhatsApp Ativo' : 'WhatsApp Offline'}
+          </button>
+        )}
         <div className="flex items-center justify-between border-t border-white/10 pt-4">
           <Button variant="ghost" size="icon" onClick={toggleTheme} className="text-indigo-200 hover:bg-white/10 hover:text-white">
             {theme === 'dark' ? <Sun className="size-4" /> : <Moon className="size-4" />}

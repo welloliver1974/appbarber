@@ -23,6 +23,7 @@ function Services() {
   const [name, setName] = useState('')
   const [price, setPrice] = useState('')
   const [duration, setDuration] = useState('30')
+  const [buffer, setBuffer] = useState('0')
   const [query, setQuery] = useState('')
   const [filter, setFilter] = useState<ServiceFilter>('all')
 
@@ -65,6 +66,7 @@ function Services() {
     setName('')
     setPrice('')
     setDuration('30')
+    setBuffer('0')
     setEditing(null)
   }
 
@@ -74,6 +76,7 @@ function Services() {
       name: name.trim(),
       price: parseFloat(price),
       duration_minutes: parseInt(duration, 10),
+      buffer_minutes: parseInt(buffer, 10) || 0,
       shop_id: shop.id,
     }
     if (editing) {
@@ -99,6 +102,7 @@ function Services() {
     setName(service.name)
     setPrice(String(service.price))
     setDuration(String(service.duration_minutes))
+    setBuffer(String(service.buffer_minutes ?? 0))
     setOpen(true)
   }
 
@@ -131,6 +135,7 @@ function Services() {
                 <Input placeholder="Nome do serviço" value={name} onChange={(e) => setName(e.target.value)} className="border-indigo-500/20 focus:ring-indigo-500" />
                 <Input placeholder="Preço (R$)" type="number" step="0.01" value={price} onChange={(e) => setPrice(e.target.value)} className="border-indigo-500/20 focus:ring-indigo-500" />
                 <Input placeholder="Duração (min)" type="number" value={duration} onChange={(e) => setDuration(e.target.value)} className="border-indigo-500/20 focus:ring-indigo-500" />
+                <Input placeholder="Tempo de limpeza / Buffer (min)" type="number" value={buffer} onChange={(e) => setBuffer(e.target.value)} className="border-indigo-500/20 focus:ring-indigo-500" />
                 <Button onClick={save} className="w-full bg-gradient-to-r from-indigo-600 to-blue-600 text-white shadow-md hover:from-indigo-500 hover:to-blue-500">Salvar</Button>
               </div>
             </DialogContent>
@@ -208,6 +213,11 @@ function Services() {
                           <span className="rounded-full bg-indigo-500/10 px-2.5 py-1 text-indigo-600 dark:text-indigo-400">
                             {service.duration_minutes} min
                           </span>
+                          {service.buffer_minutes ? (
+                            <span className="rounded-full bg-amber-500/10 px-2.5 py-1 text-amber-600 dark:text-amber-400">
+                              +{service.buffer_minutes} min limpeza
+                            </span>
+                          ) : null}
                         </div>
                       </div>
                     </div>

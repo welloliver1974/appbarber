@@ -18,6 +18,7 @@ export interface Barber {
   id: string
   shop_id: string
   name: string
+  phone: string | null
   photo_url: string | null
   bio: string | null
   active: boolean
@@ -41,6 +42,7 @@ export interface Service {
   duration_minutes: number
   price: number
   active: boolean
+  buffer_minutes: number | null
   created_at: string
   updated_at: string
 }
@@ -71,6 +73,7 @@ export interface Appointment {
   start_time: string
   end_time: string
   status: 'pending' | 'confirmed' | 'cancelled' | 'completed'
+  cancel_token: string | null
   notes: string | null
   created_at: string
   updated_at: string
@@ -84,6 +87,7 @@ export interface WhatsAppConfig {
   api_key: string
   webhook_secret: string
   active: boolean
+  reengage_interval_days: number | null
   created_at: string
   updated_at: string
 }

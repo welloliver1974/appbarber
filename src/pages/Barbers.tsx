@@ -23,6 +23,7 @@ function Barbers() {
   const [open, setOpen] = useState(false)
   const [editing, setEditing] = useState<Barber | null>(null)
   const [name, setName] = useState('')
+  const [phone, setPhone] = useState('')
   const [query, setQuery] = useState('')
   const [filter, setFilter] = useState<BarberFilter>('all')
   const [availabilityCount, setAvailabilityCount] = useState<Record<string, number>>({})
@@ -79,14 +80,19 @@ function Barbers() {
 
   async function save() {
     if (!shop || !name.trim()) return
+    const payload = {
+      name: name.trim(),
+      phone: phone.trim() || null,
+    }
     if (editing) {
-      await supabase.from('barbers').update({ name: name.trim() }).eq('id', editing.id)
+      await supabase.from('barbers').update(payload).eq('id', editing.id)
       toast.success('Barbeiro atualizado')
     } else {
-      await supabase.from('barbers').insert({ name: name.trim(), shop_id: shop.id })
+      await supabase.from('barbers').insert({ ...payload, shop_id: shop.id })
       toast.success('Barbeiro cadastrado')
     }
     setName('')
+    setPhone('')
     setEditing(null)
     setOpen(false)
     load()
@@ -101,6 +107,7 @@ function Barbers() {
   function edit(barber: Barber) {
     setEditing(barber)
     setName(barber.name)
+    setPhone(barber.phone ?? '')
     setOpen(true)
   }
 
@@ -149,7 +156,7 @@ function Barbers() {
               <p className="text-sm text-muted-foreground">Lista com disponibilidade e acesso rápido aos horários</p>
             </div>
           </div>
-          <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) { setEditing(null); setName('') } }}>
+          <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) { setEditing(null); setName(''); setPhone('') } }}>
             <DialogTrigger>
               <Button className="bg-gradient-to-r from-indigo-600 to-blue-600 text-white shadow-md hover:from-indigo-500 hover:to-blue-500">
                 <Plus className="mr-2 size-4" /> Novo Barbeiro
@@ -160,7 +167,15 @@ function Barbers() {
                 <DialogTitle>{editing ? 'Editar Barbeiro' : 'Novo Barbeiro'}</DialogTitle>
               </DialogHeader>
               <div className="space-y-4">
-                <Input placeholder="Nome do barbeiro" value={name} onChange={(e) => setName(e.target.value)} className="border-indigo-500/20 focus:ring-indigo-500" />
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Nome</label>
+                  <Input placeholder="Nome do barbeiro" value={name} onChange={(e) => setName(e.target.value)} className="border-indigo-500/20 focus:ring-indigo-500" />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Telefone (WhatsApp)</label>
+                  <Input placeholder="Ex: 5511999999999" value={phone} onChange={(e) => setPhone(e.target.value)} className="border-indigo-500/20 focus:ring-indigo-500" />
+                  <p className="text-xs text-muted-foreground">Para notificações de novos agendamentos.</p>
+                </div>
                 <Button onClick={save} className="w-full bg-gradient-to-r from-indigo-600 to-blue-600 text-white shadow-md hover:from-indigo-500 hover:to-blue-500">Salvar</Button>
               </div>
             </DialogContent>
@@ -231,6 +246,9 @@ function Barbers() {
                       </div>
                       <div>
                         <p className="font-medium">{barber.name}</p>
+                        {barber.phone && (
+                          <p className="text-xs text-muted-foreground">{barber.phone}</p>
+                        )}
                         <div className="mt-1 flex flex-wrap gap-2 text-xs">
                           <span className={`rounded-full px-2.5 py-1 ${barber.active ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' : 'bg-muted text-muted-foreground'}`}>
                             {barber.active ? 'Ativo' : 'Inativo'}

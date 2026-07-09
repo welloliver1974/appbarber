@@ -47,7 +47,7 @@ export async function getAvailableSlots(
 
   let query = supabase
     .from('appointments')
-    .select('start_time, end_time')
+    .select('start_time, end_time, services(buffer_minutes)')
     .eq('barber_id', barberId)
     .gte('start_time', dayStart.toISOString())
     .lte('start_time', dayEnd.toISOString())
@@ -58,10 +58,16 @@ export async function getAvailableSlots(
   }
 
   const { data: booked } = await query
-  const bookedSlots = (booked ?? []).map((b: { start_time: string; end_time: string }) => ({
-    start: formatTime(b.start_time),
-    end: formatTime(b.end_time),
-  }))
+  const bookedSlots = (booked ?? []).map((b: any) => {
+    const start = formatTime(b.start_time)
+    const end = formatTime(b.end_time)
+    const buffer = b.services?.buffer_minutes ?? 0
+    const endWithBuffer = addMinutes(end, buffer)
+    return {
+      start,
+      end: endWithBuffer,
+    }
+  })
 
   const allSlots: string[] = []
   for (const a of availList) {

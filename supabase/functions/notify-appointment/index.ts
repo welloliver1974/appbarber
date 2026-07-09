@@ -12,6 +12,10 @@ interface WebhookPayload {
     service_id: string
     start_time: string
     status: string
+    cancel_token: string | null
+  }
+  old_record?: {
+    status?: string
   }
 }
 
@@ -22,26 +26,28 @@ serve(async (req) => {
 
   try {
     const payload: WebhookPayload = await req.json()
+    const { record, old_record, type } = payload
+
+    // Em UPDATEs, só processa se o status mudou de fato (evitar spam)
+    if (type === 'UPDATE' && old_record?.status === record.status) {
+      return new Response('Status unchanged — skipped', { status: 200 })
+    }
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     const supabase = createClient(supabaseUrl, supabaseKey)
 
-    const { record } = payload
-
-    if (record.status === 'cancelled') {
-      return new Response('Cancelled appointments are ignored', { status: 200 })
-    }
-
-    const [clientRes, barberRes, serviceRes] = await Promise.all([
+    const [clientRes, barberRes, serviceRes, shopRes] = await Promise.all([
       supabase.from('clients').select('name, phone').eq('id', record.client_id).single(),
-      supabase.from('barbers').select('name').eq('id', record.barber_id).single(),
+      supabase.from('barbers').select('name, phone').eq('id', record.barber_id).single(),
       supabase.from('services').select('name').eq('id', record.service_id).single(),
+      supabase.from('shops').select('name, public_slug').eq('id', record.shop_id).single(),
     ])
 
     const client = clientRes.data as { name: string; phone: string } | null
-    const barber = barberRes.data as { name: string } | null
+    const barber = barberRes.data as { name: string; phone: string | null } | null
     const service = serviceRes.data as { name: string } | null
+    const shop = shopRes.data as { name: string; public_slug: string | null } | null
 
     if (!client) {
       return new Response('Client not found', { status: 404 })
@@ -49,18 +55,68 @@ serve(async (req) => {
 
     const date = new Date(record.start_time).toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo' })
     const time = new Date(record.start_time).toLocaleTimeString('pt-BR', { timeZone: 'America/Sao_Paulo', hour: '2-digit', minute: '2-digit' })
+    const shopName = shop?.name ?? 'Barbearia'
+    const shopSlug = shop?.public_slug ?? null
+    
+    const publicSiteUrl = Deno.env.get('PUBLIC_SITE_URL') ?? 'https://appbarber.vercel.app'
+    const bookingUrl = shopSlug
+      ? `${publicSiteUrl.replace(/\/$/, '')}/public/${shopSlug}`
+      : null
 
-    const msg = [
-      `🪒 *AppBarber*`,
-      ``,
-      payload.type === 'INSERT'
-        ? `Olá ${client.name}, seu agendamento foi confirmado!`
-        : `Olá ${client.name}, seu agendamento foi atualizado!`,
-      ``,
-      `📅 ${date} às ${time}`,
-      `💈 ${service?.name ?? 'Serviço'}`,
-      `✂️ ${barber?.name ?? 'Barbeiro'}`,
-    ].join('\n')
+    // ── Mensagens distintas por status ──
+    let msg: string
+
+    if (type === 'INSERT' || record.status === 'pending') {
+      // Novo agendamento criado — aguardando confirmação do barbeiro
+      const cancelLine = bookingUrl
+        ? `\n\nPrecisa cancelar? Acesse: ${bookingUrl}/manage?token=${record.cancel_token}`
+        : ''
+      msg = [
+        `🪒 *${shopName}*`,
+        ``,
+        `Olá *${client.name}*, recebemos seu pedido de agendamento!`,
+        ``,
+        `📅 *${date}* às *${time}*`,
+        `💈 ${service?.name ?? 'Serviço'}`,
+        `✂️ ${barber?.name ?? 'Barbeiro'}`,
+        ``,
+        `⏳ Seu horário será confirmado em breve. Fique de olho!${cancelLine}`,
+      ].join('\n')
+
+    } else if (record.status === 'confirmed') {
+      // Barbeiro confirmou o agendamento no painel SaaS
+      const cancelLine = bookingUrl
+        ? `\n\nPrecisa cancelar? Acesse: ${bookingUrl}/manage?token=${record.cancel_token}`
+        : ''
+      msg = [
+        `🪒 *${shopName}*`,
+        ``,
+        `✅ Olá *${client.name}*, seu agendamento foi *CONFIRMADO*!`,
+        ``,
+        `📅 *${date}* às *${time}*`,
+        `💈 ${service?.name ?? 'Serviço'}`,
+        `✂️ ${barber?.name ?? 'Barbeiro'}`,
+        ``,
+        `Te esperamos lá! 💪${cancelLine}`,
+      ].join('\n')
+
+    } else if (record.status === 'cancelled') {
+      // Agendamento cancelado
+      const reschedule = bookingUrl
+        ? `Quer remarcar? Acesse: ${bookingUrl}`
+        : `Entre em contato para remarcar.`
+      msg = [
+        `🪒 *${shopName}*`,
+        ``,
+        `❌ Olá *${client.name}*, seu agendamento do dia *${date}* às *${time}* foi *cancelado*.`,
+        ``,
+        reschedule,
+      ].join('\n')
+
+    } else {
+      // completed ou qualquer outro status — sem notificação
+      return new Response(`Status "${record.status}" — no message sent`, { status: 200 })
+    }
 
     const { data: config } = await supabase
       .from('whatsapp_configs')
@@ -93,8 +149,42 @@ serve(async (req) => {
 
     if (!response.ok) {
       const err = await response.text()
-      console.error('[notify-appointment] Evolution API error:', err)
+      console.error('[notify-appointment] Evolution API error sending to client:', err)
       return new Response(err, { status: 500 })
+    }
+
+    // Se for novo agendamento, notifica o barbeiro (se houver telefone cadastrado)
+    if (type === 'INSERT' && barber?.phone) {
+      const barberMsg = [
+        `📅 *Novo agendamento!*`,
+        ``,
+        `O cliente *${client.name}* agendou *${service?.name ?? 'Serviço'}* para dia *${date}* às *${time}*.`,
+        ``,
+        `Acesse o painel para confirmar.`,
+      ].join('\n')
+
+      const barberResponse = await fetch(
+        `${c.server_url.replace(/\/$/, '')}/message/sendText/${c.instance_name}`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            apikey: c.api_key,
+          },
+          body: JSON.stringify({
+            number: barber.phone.replace(/\D/g, ''),
+            text: barberMsg,
+            delay: 1200,
+          }),
+        },
+      )
+
+      if (!barberResponse.ok) {
+        const err = await barberResponse.text()
+        console.error('[notify-appointment] Evolution API error sending to barber:', err)
+      } else {
+        console.log(`[notify-appointment] Barber notification sent to ${barber.name}`)
+      }
     }
 
     return new Response('OK', { status: 200 })

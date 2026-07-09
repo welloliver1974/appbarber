@@ -128,7 +128,7 @@ src/
 ### Sessão 8 — Site Público (Studio Lima)
 - **supabase/migrations/20260708194100_public_site_data.sql:** Adicionadas colunas `instagram`, `working_hours` (JSONB), `gallery_photos` (JSONB), `hero_photo` na tabela `shops`
 - **supabase/migrations/20260708194200_apply_all_missing.sql:** Unifica todas as colunas pendentes (`owner_user_id`, `public_slug`, instagram, etc.)
-- **src/types/database.ts:** Interface `Shop` atualizada com os novos campos; `public_slug` agora opcional
+- **src/types/database.ts:** Interface `Shop` updated com os novos campos; `public_slug` agora opcional
 - **src/lib/site.ts:** `buildPublicSiteUrl` agora retorna `/public/slug` no localhost
 - **src/lib/public-site.ts:** `loadPublicShopContext` fallback para primeira loja se `public_slug` não existir; aceita `slug: string | null`
 - **src/lib/shop.ts:** `resolveActiveShop` trata colunas faltantes (migration não aplicada)
@@ -138,3 +138,9 @@ src/
 - **src/pages/WhatsAppSettings.tsx:** Seção "Site Público" com upload de fotos (file input + preview), mantidos Instagram, Working Hours, Copiar link
 - **src/components/AppLayout.tsx:** Item "Site Público" (ícone Globe) na sidebar
 - **build:** Produção validado após mudanças
+
+### Sessão 9 — Redesign Premium do Site Público (Luxury Gold)
+- **src/pages/PublicSite.tsx:** Reescrito completamente com tema de luxo escuro (fundo preto absoluto `#050505`, glows radiais dourados e destaques âmbar/ouro). Adicionado wizard de 4 etapas (serviços com categorias/busca, barbeiros com bio, datas horizontais de 14 dias em chips e slots por períodos de turno, formulário de WhatsApp com máscara e resumo flutuante).
+- **future_improvements_plan.md:** **CRIADO** — Plano de melhorias futuras para integrar estreitamente o Site Público ao SaaS (links de cancelamento/auto-serviço no WhatsApp, buffers e múltiplos serviços na reserva, links de marketing personalizados por barbeiro, motor de re-engajamento ativo para retenção e widget de status do WhatsApp no Dashboard).
+- **build:** Produção validada com sucesso após as mudanças estéticas e estruturais.
+

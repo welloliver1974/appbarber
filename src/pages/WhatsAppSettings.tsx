@@ -33,6 +33,7 @@ function WhatsAppSettings() {
   const [serverUrl, setServerUrl] = useState('')
   const [apiKey, setApiKey] = useState('')
   const [instanceName, setInstanceName] = useState('')
+  const [reengageIntervalDays, setReengageIntervalDays] = useState('22')
 
   const [siteInstagram, setSiteInstagram] = useState('')
   const [siteHeroPhoto, setSiteHeroPhoto] = useState('')
@@ -68,11 +69,12 @@ function WhatsAppSettings() {
       ])
 
       if (whatsRes.data) {
-        const c = whatsRes.data as WhatsAppConfig
+        const c = whatsRes.data as WhatsAppConfig & { reengage_interval_days?: number | null }
         setConfig(c)
         setServerUrl(c.server_url)
         setApiKey(c.api_key)
         setInstanceName(c.instance_name)
+        setReengageIntervalDays(String(c.reengage_interval_days ?? 22))
       }
 
       if (shopRes.data) {
@@ -110,6 +112,7 @@ function WhatsAppSettings() {
       api_key: apiKey.trim(),
       webhook_secret: '',
       active: true,
+      reengage_interval_days: parseInt(reengageIntervalDays, 10) || 22,
     }
 
     if (config) {
@@ -275,6 +278,20 @@ function WhatsAppSettings() {
                     onChange={(e) => setApiKey(e.target.value)}
                     className="border-indigo-500/20 focus:ring-indigo-500"
                   />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Intervalo de Re-engajamento (Dias)</label>
+                  <Input
+                    type="number"
+                    min="1"
+                    placeholder="22"
+                    value={reengageIntervalDays}
+                    onChange={(e) => setReengageIntervalDays(e.target.value)}
+                    className="border-indigo-500/20 focus:ring-indigo-500"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Número de dias sem visitas para disparar a notificação de re-engajamento.
+                  </p>
                 </div>
                 <Button onClick={save} className="w-full bg-gradient-to-r from-indigo-600 to-blue-600 text-white shadow-md hover:from-indigo-500 hover:to-blue-500" disabled={saving}>
                   {saving ? 'Salvando...' : <><Save className="mr-2 size-4" /> Salvar configuração</>}

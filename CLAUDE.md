@@ -33,7 +33,7 @@ For existing databases, use the incremental migration path instead of replaying 
 
 For the next working session, start with [NEXT_SESSION_QA.md](./NEXT_SESSION_QA.md) and follow the steps in order before moving on to any new feature work.
 
-For the public-site expansion, start with [PUBLIC_SITE_PHASE1.md](./PUBLIC_SITE_PHASE1.md). That file is the handoff for the site publico + SaaS split and should be the source of truth for the next implementation pass.
+For the public-site expansion and future integrations, start with [FUTURE_IMPROVEMENTS.md](./FUTURE_IMPROVEMENTS.md). That file contains the handoff and roadmap for connecting the public site with the SaaS panel, and should be the source of truth for the next implementation pass.
 
 ## Hard rules
 
