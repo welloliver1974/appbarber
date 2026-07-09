@@ -159,7 +159,7 @@ src/
 - **src/components/AppLayout.tsx:** Item "Configurações" (ícone Settings) adicionado na sidebar
 - **src/pages/ManageBooking.tsx:** Busca agendamento via `.eq('cancel_token', token)` em vez de `.eq('id', token)`
 - **build:** `npm run build` validado com sucesso (`✓ built in 1.17s`)
-- **Commit:** `dda8579` — local apenas; push para `origin main` ainda pendente
+- **Commit:** `dda8579` + `0a6b0ea` — locais; push para `origin main` ainda pendente
 - **⚠️ PENDENTE:** Todas as 3 migrations + 2 edge function deploys + push precisam ser executados manualmente (ver `ROADMAP.md` Fase 0)
-- **⚠️ DÍVIDA TÉCNICA:** `ShopSettings.tsx` usa `useState` em vez de React Hook Form + Zod (obrigatório pelo AGENTS.md)
+- **✅ RESOLVIDO:** `ShopSettings.tsx` migrado para React Hook Form + Zod; `src/components/ui/form.tsx` criado (shadcn Form sem deps externas)
 

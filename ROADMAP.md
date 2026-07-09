@@ -132,8 +132,8 @@ Estas ações são **manuais** e desbloquearão os bugs ativos em produção.
 - [x] Página criada com campos: `name`, `phone`, `address`, `logo_url`
 - [x] Rota `/settings` adicionada em `App.tsx`
 - [x] Item "Configurações" na sidebar (`AppLayout.tsx`)
-- [ ] **DÍVIDA TÉCNICA**: Formulário usa `useState` simples. O AGENTS.md exige React Hook Form + Zod.
-  > Migrar para RHF + Zod seguindo o padrão do projeto.
+- [x] Formulário migrado para React Hook Form + Zod (commit `0a6b0ea`)
+- **Componente**: `src/components/ui/form.tsx` criado (shadcn Form sem deps externas)
 
 ### [FEAT-3] `reengage_interval_days` configurável ✅ _código concluído em 2026-07-09_
 - **Arquivos**: `supabase/functions/reengage/index.ts` + `src/pages/WhatsAppSettings.tsx`
@@ -176,7 +176,7 @@ Estas ações são **manuais** e desbloquearão os bugs ativos em produção.
 
 | Item | Arquivo | Problema | Prioridade |
 |---|---|---|---|
-| RHF + Zod | `src/pages/ShopSettings.tsx` | Usa `useState` em vez de React Hook Form + Zod (obrigatório pelo AGENTS.md) | Alta |
+| ~~RHF + Zod~~ | ~~`ShopSettings.tsx`~~ | ~~Resolvido em `0a6b0ea`~~ | ~~Alta~~ |
 | Checkmark ROADMAP | Este arquivo | Marcar checkboxes após concluir cada item | Contínua |
 
 ---
