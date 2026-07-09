@@ -5,13 +5,14 @@ import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import PageTransition from '@/components/PageTransition'
-import { ShieldCheck, Store, Plus, Loader2, Copy, Check, Settings, Save, Trash2 } from 'lucide-react'
+import { ShieldCheck, Store, Plus, Loader2, Copy, Check, Settings, Save, Trash2, Terminal } from 'lucide-react'
 import { toast } from 'sonner'
 
 interface ShopRow {
   id: string
   name: string
   owner_user_id: string | null
+  auth_email: string | null
   public_slug: string | null
   phone: string | null
   address: string | null
@@ -23,6 +24,7 @@ interface ShopRow {
 function AdminPage() {
   const [shops, setShops] = useState<ShopRow[]>([])
   const [loading, setLoading] = useState(true)
+  const [setupError, setSetupError] = useState<string | null>(null)
   const [createOpen, setCreateOpen] = useState(false)
   const [editOpen, setEditOpen] = useState(false)
   const [editingShop, setEditingShop] = useState<ShopRow | null>(null)
@@ -37,13 +39,24 @@ function AdminPage() {
   const [editAddress, setEditAddress] = useState('')
   const [editInstagram, setEditInstagram] = useState('')
 
+  function generateAuthEmail(shopName: string): string {
+    const slug = shopName.toLowerCase().replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '')
+    const rand = Math.random().toString(36).slice(2, 8)
+    return `shop-${slug}-${rand}@appbarber.app`
+  }
+
   async function loadShops() {
     setLoading(true)
+    setSetupError(null)
     const { data, error } = await supabase.rpc('admin_get_all_shops')
 
     if (error) {
-      toast.error('Erro ao carregar lojas: ' + error.message)
       setShops([])
+      if (error.message?.includes('function') || error.message?.includes('not found') || error.code === 'PGRST202') {
+        setSetupError(error.message)
+      } else {
+        toast.error('Erro ao carregar lojas: ' + error.message)
+      }
     } else if (data) {
       setShops(data as ShopRow[])
     }
@@ -58,9 +71,11 @@ function AdminPage() {
     if (!trimmed || trimmed.length < 2) return
 
     setSaving(true)
+    const authEmail = generateAuthEmail(trimmed)
     const { error } = await supabase.rpc('admin_create_shop', {
       shop_name: trimmed,
       owner_id: ownerId.trim() || null,
+      auth_email: authEmail,
     })
 
     if (error) {
@@ -143,7 +158,7 @@ function AdminPage() {
                 <Plus className="mr-2 size-4" /> Nova Barbearia
               </Button>
             </DialogTrigger>
-            <DialogContent>
+            <DialogContent className="max-w-lg">
               <DialogHeader>
                 <DialogTitle>Criar Barbearia</DialogTitle>
               </DialogHeader>
@@ -152,18 +167,66 @@ function AdminPage() {
                   <label className="text-sm font-medium">Nome da Barbearia</label>
                   <Input placeholder="Ex: Studio Lima" value={name} onChange={(e) => setName(e.target.value)} required minLength={2} />
                 </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">ID do Usuário (opcional)</label>
-                  <Input placeholder="Cole o UUID do usuário" value={ownerId} onChange={(e) => setOwnerId(e.target.value)} />
-                  <p className="text-xs text-muted-foreground">Crie o usuário em Supabase &gt; Authentication &gt; Users, copie o UUID.</p>
+
+                {name.trim().length >= 2 && (
+                  <div className="rounded-xl border border-indigo-500/10 bg-indigo-500/5 p-3">
+                    <p className="mb-1 text-xs font-medium text-muted-foreground">Email de login (auto-gerado)</p>
+                    <div className="flex items-center gap-2">
+                      <code className="flex-1 truncate font-mono text-sm text-indigo-400">{generateAuthEmail(name)}</code>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="size-6 text-indigo-500"
+                        onClick={() => { navigator.clipboard.writeText(generateAuthEmail(name)); toast.success('Email copiado!') }}
+                        title="Copiar email"
+                      >
+                        <Copy className="size-3" />
+                      </Button>
+                    </div>
+                  </div>
+                )}
+
+                <div className="rounded-xl border border-amber-500/10 bg-amber-500/5 p-3 text-xs text-muted-foreground">
+                  <p className="mb-1 font-medium text-amber-600 dark:text-amber-400">Passos para criar o acesso:</p>
+                  <ol className="ml-4 list-decimal space-y-1">
+                    <li>Abra Supabase &gt; Authentication &gt; Users &gt; <strong>Add User</strong></li>
+                    <li>Email: use o email auto-gerado acima</li>
+                    <li>Senha: defina uma senha para o barbeiro</li>
+                    <li>Copie o <strong>UUID</strong> do usuário criado</li>
+                    <li>Cole o UUID no campo abaixo</li>
+                  </ol>
                 </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">UUID do Usuário</label>
+                  <Input placeholder="Cole o UUID do usuário criado no Supabase" value={ownerId} onChange={(e) => setOwnerId(e.target.value)} />
+                </div>
+
                 <Button type="submit" disabled={saving} className="w-full bg-gradient-to-r from-indigo-600 to-blue-600 text-white">
-                  {saving ? <><Loader2 className="mr-2 size-4 animate-spin" /> Criando...</> : <><Store className="mr-2 size-4" /> Criar</>}
+                  {saving ? <><Loader2 className="mr-2 size-4 animate-spin" /> Criando...</> : <><Store className="mr-2 size-4" /> Criar Barbearia</>}
                 </Button>
               </form>
             </DialogContent>
           </Dialog>
         </div>
+
+        {setupError && (
+          <div className="mb-6 rounded-2xl border border-amber-500/20 bg-amber-500/10 p-4 text-sm">
+            <div className="mb-2 flex items-center gap-2 font-medium text-amber-600 dark:text-amber-400">
+              <Terminal className="size-4" />
+              Setup pendente
+            </div>
+            <p className="mb-2 text-amber-600/80 dark:text-amber-400/80">
+              As funções de admin não existem no banco de dados. Execute o SQL abaixo no Supabase SQL Editor:
+            </p>
+            <pre className="overflow-x-auto rounded-xl bg-black/20 p-3 text-xs text-amber-600/90 dark:text-amber-400/90">
+              {`1. Abra https://supabase.com/dashboard/project/chtjqqtvvlamrdesaiwp/sql/new
+2. Copie o conteúdo de supabase/fix_rpc_only.sql
+3. Cole e execute`}
+            </pre>
+          </div>
+        )}
 
         {loading ? (
           <div className="flex justify-center py-12"><Loader2 className="size-8 animate-spin text-indigo-500" /></div>
@@ -201,6 +264,10 @@ function AdminPage() {
                   <div className="flex items-center justify-between rounded-lg bg-indigo-500/5 px-3 py-2">
                     <span className="text-muted-foreground">Dono</span>
                     <span className="font-mono text-xs">{shop.owner_user_id ? `${shop.owner_user_id.slice(0, 8)}…` : '—'}</span>
+                  </div>
+                  <div className="flex items-center justify-between rounded-lg bg-indigo-500/5 px-3 py-2">
+                    <span className="text-muted-foreground">Email</span>
+                    <span className="font-mono text-xs">{shop.auth_email ?? '—'}</span>
                   </div>
                   <div className="flex items-center justify-between rounded-lg bg-indigo-500/5 px-3 py-2">
                     <span className="text-muted-foreground">Slug</span>

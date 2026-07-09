@@ -5,7 +5,7 @@ import { useTheme } from '@/hooks/useTheme'
 import { Button } from '@/components/ui/button'
 import { buildPublicSiteUrl } from '@/lib/site'
 import { useWhatsAppStatus } from '@/hooks/useWhatsAppStatus'
-import ShopSetup from '@/components/ShopSetup'
+
 import { Loader2 } from 'lucide-react'
 import { Sun, Moon, LogOut, Scissors, Calendar, Users, LayoutDashboard, MessageSquare, Menu, X, Contact, BarChart3, Globe, Settings, ShieldCheck } from 'lucide-react'
 
@@ -23,6 +23,43 @@ const adminNavItems = [
   { href: '/admin', label: 'Admin', icon: ShieldCheck },
   { href: '/settings', label: 'Configurações', icon: Settings },
 ]
+
+function NoShopPage({ user, signOut }: { user: import('@supabase/supabase-js').User; signOut: () => Promise<void> }) {
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-indigo-900 via-indigo-950 to-slate-900 p-4">
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-indigo-500/20 via-transparent to-transparent" />
+      <div className="relative max-w-md text-center">
+        <div className="mx-auto mb-6 flex size-20 items-center justify-center rounded-3xl bg-gradient-to-br from-indigo-500 to-blue-600 shadow-2xl shadow-indigo-500/30">
+          <Scissors className="size-10 text-white" />
+        </div>
+        <h1 className="mb-2 text-2xl font-black text-white">AppBarber</h1>
+        <p className="mb-6 text-sm leading-relaxed text-indigo-200/70">
+          Sua barbearia ainda não foi criada.
+          <br />
+          Entre em contato com o administrador para liberar seu acesso.
+        </p>
+        <div className="rounded-2xl border border-white/10 bg-white/5 p-4 text-left text-xs text-indigo-200/50">
+          <p className="mb-1 font-medium text-indigo-200/80">Conta</p>
+          <p className="font-mono">{user.email}</p>
+        </div>
+        <div className="mt-6 flex justify-center gap-3">
+          <button
+            onClick={() => window.location.reload()}
+            className="rounded-xl bg-white/10 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-white/20"
+          >
+            Tentar novamente
+          </button>
+          <button
+            onClick={() => { signOut() }}
+            className="rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-indigo-500"
+          >
+            Sair
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
 
 function AppLayout() {
   const { user, shop, loading, isAdmin, signOut } = useAuth()
@@ -50,7 +87,7 @@ function AppLayout() {
   }
 
   if (!shop && !isAdmin) {
-    return <ShopSetup />
+    return <NoShopPage user={user!} signOut={signOut} />
   }
 
   // Admin sem loja própria: só pode acessar /admin

@@ -1,18 +1,22 @@
 import { useState } from 'react'
+import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/providers/AuthProvider'
 import { Navigate, useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
-import { ShieldCheck, Scissors, Clock3, MessageSquare } from 'lucide-react'
+import { Scissors, Clock3, MessageSquare, ShieldCheck, Store, Lock, Mail } from 'lucide-react'
+
+type LoginMode = 'shop' | 'admin'
 
 function Login() {
+  const [mode, setMode] = useState<LoginMode>('shop')
+  const [shopName, setShopName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
-  const [message, setMessage] = useState('')
-  const [isRegister, setIsRegister] = useState(false)
-  const { signIn, signUp, user } = useAuth()
+  const [busy, setBusy] = useState(false)
+  const { user, signIn } = useAuth()
   const navigate = useNavigate()
 
   if (user) {
@@ -22,18 +26,46 @@ function Login() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setError('')
-    setMessage('')
+    setBusy(true)
 
     try {
-      if (isRegister) {
-        await signUp(email, password)
-        setMessage('Conta criada. Verifique seu email para confirmar.')
+      if (mode === 'shop') {
+        const trimmed = shopName.trim()
+        if (!trimmed) {
+          setError('Digite o nome da barbearia')
+          setBusy(false)
+          return
+        }
+
+        const { data: authEmail, error: lookupError } = await supabase
+          .rpc('lookup_shop_auth_email', { shop_name: trimmed })
+
+        if (lookupError || !authEmail) {
+          setError('Barbearia não encontrada. Verifique o nome ou contate o administrador.')
+          setBusy(false)
+          return
+        }
+
+        await signIn(authEmail, password)
       } else {
-        await signIn(email, password)
-        navigate('/')
+        if (!email.trim()) {
+          setError('Digite seu email')
+          setBusy(false)
+          return
+        }
+        await signIn(email.trim(), password)
       }
+
+      navigate('/')
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erro')
+      const msg = err instanceof Error ? err.message : 'Erro ao entrar'
+      if (msg.includes('Invalid login credentials')) {
+        setError('Senha incorreta')
+      } else {
+        setError(msg)
+      }
+    } finally {
+      setBusy(false)
     }
   }
 
@@ -80,37 +112,58 @@ function Login() {
             </CardTitle>
             <p className="text-[10px] font-medium uppercase tracking-[0.25em] text-muted-foreground/60">Sistema de Gestão</p>
             <CardDescription>
-              {isRegister ? 'Crie sua conta para começar' : 'Entre para continuar a operação'}
+              {mode === 'shop' ? 'Entre com o nome da sua barbearia' : 'Acesso administrativo'}
             </CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="space-y-2">
-                <label htmlFor="email" className="text-sm font-medium">Email</label>
-                <Input id="email" type="email" placeholder="seu@email.com" value={email} onChange={(e) => setEmail(e.target.value)} required className="border-indigo-500/20 focus:ring-indigo-500" />
-              </div>
+              {mode === 'shop' ? (
+                <div className="space-y-2">
+                  <label htmlFor="shop-name" className="text-sm font-medium">Nome da Barbearia</label>
+                  <div className="relative">
+                    <Store className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                    <Input id="shop-name" placeholder="Ex: Studio Lima" value={shopName} onChange={(e) => setShopName(e.target.value)} required className="border-indigo-500/20 pl-10 focus:ring-indigo-500" />
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  <label htmlFor="email" className="text-sm font-medium">Email</label>
+                  <div className="relative">
+                    <Mail className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                    <Input id="email" type="email" placeholder="admin@email.com" value={email} onChange={(e) => setEmail(e.target.value)} required className="border-indigo-500/20 pl-10 focus:ring-indigo-500" />
+                  </div>
+                </div>
+              )}
+
               <div className="space-y-2">
                 <label htmlFor="password" className="text-sm font-medium">Senha</label>
-                <Input id="password" type="password" placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} required className="border-indigo-500/20 focus:ring-indigo-500" />
+                <div className="relative">
+                  <Lock className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                  <Input id="password" type="password" placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} required className="border-indigo-500/20 pl-10 focus:ring-indigo-500" />
+                </div>
               </div>
+
               {error && <p className="text-sm text-destructive">{error}</p>}
-              {message && <p className="text-sm text-emerald-500">{message}</p>}
-              <Button type="submit" className="w-full bg-gradient-to-r from-indigo-600 to-blue-600 text-white shadow-md hover:from-indigo-500 hover:to-blue-500">
-                {isRegister ? 'Criar conta' : 'Entrar'}
+
+              <Button type="submit" disabled={busy} className="w-full bg-gradient-to-r from-indigo-600 to-blue-600 text-white shadow-md hover:from-indigo-500 hover:to-blue-500">
+                {busy ? 'Entrando...' : 'Entrar'}
               </Button>
             </form>
-            <p className="mt-4 text-center text-sm text-muted-foreground">
-              {isRegister ? 'Já tem conta?' : 'Não tem conta?'}{' '}
+
+            <div className="mt-4 text-center">
               <button
                 type="button"
-                className="font-medium text-indigo-600 underline underline-offset-4 transition-colors hover:text-indigo-500 dark:text-indigo-400"
-                onClick={() => { setIsRegister(!isRegister); setError(''); setMessage('') }}
+                className="text-xs text-muted-foreground underline underline-offset-4 hover:text-indigo-500"
+                onClick={() => { setMode(mode === 'shop' ? 'admin' : 'shop'); setError('') }}
               >
-                {isRegister ? 'Fazer login' : 'Cadastre-se'}
+                {mode === 'shop' ? 'Acesso do administrador' : 'Login da barbearia'}
               </button>
-            </p>
-            <div className="mt-5 rounded-2xl border border-indigo-500/10 bg-indigo-500/5 p-4 text-xs text-muted-foreground">
-              Dark mode, horários em UTC-3 e foco operacional desde a entrada.
+            </div>
+
+            <div className="mt-4 rounded-2xl border border-indigo-500/10 bg-indigo-500/5 p-4 text-xs text-muted-foreground">
+              {mode === 'shop'
+                ? 'Acesso exclusivo para barbearias cadastradas.'
+                : 'Apenas administradores autorizados.'}
             </div>
           </CardContent>
         </Card>

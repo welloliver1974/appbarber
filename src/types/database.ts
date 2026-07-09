@@ -1,6 +1,7 @@
 export interface Shop {
   id: string
   owner_user_id: string | null
+  auth_email: string | null
   public_slug: string | null
   name: string
   phone: string | null
