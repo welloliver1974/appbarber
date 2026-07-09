@@ -31,7 +31,11 @@ function AppLayout() {
   const location = useLocation()
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const { state: waState } = useWhatsAppStatus(shop?.id)
-  const navItems = useMemo(() => isAdmin ? [...baseNavItems, ...adminNavItems] : baseNavItems, [isAdmin])
+  const navItems = useMemo(() => {
+    if (isAdmin && !shop) return adminNavItems
+    if (isAdmin) return [...baseNavItems, ...adminNavItems]
+    return baseNavItems
+  }, [isAdmin, shop])
 
   if (!user) {
     return <Navigate to="/login" replace />
@@ -49,7 +53,7 @@ function AppLayout() {
     return <ShopSetup />
   }
 
-  // Admin sem loja própria: redireciona pro /admin
+  // Admin sem loja própria: só pode acessar /admin
   if (isAdmin && !shop && location.pathname !== '/admin') {
     return <Navigate to="/admin" replace />
   }
