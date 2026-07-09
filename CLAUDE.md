@@ -13,10 +13,10 @@ All code for Phase 1, 2 & Item 4 (RHF+Zod forms) is fully written, validated wit
 - **`src/components/ui/form.tsx`**: Reescrito com `FormField` usando `useFormContext()` internamente para evitar conflito de generics do `react-hook-form` v7+ com `zodResolver`. A prop `control` é aceita mas ignorada (compat. de API). A prop `rules` é tipada como `any`.
 - **`src/pages/Services.tsx`**: Corrigido `.default('0')` no schema Zod de `buffer_minutes` (eliminava divergência input/output no resolver); removido `asChild` do `DialogTrigger`.
 - **`supabase/fix_rls_policies.sql`**: SQL de correção RLS (permitir SELECT/UPDATE de lojas sem dono).
-- **`src/lib/shop.ts`**: `resolveActiveShop` refatorado — retorna null em vez de lançar erro, não auto-cria loja; nova `createShop()` exportada.
-- **`src/providers/AuthProvider.tsx`**: Adicionado `error`, `setupShop()`, `clearError()`; try/catch no `loadShop`.
-- **`src/components/ShopSetup.tsx`**: Nova tela de onboarding para criar barbearia.
-- **`src/components/AppLayout.tsx`**: Guardas para loading/shop null antes de renderizar app.
+- **`src/lib/shop.ts`**: `resolveActiveShop` simplificado — só busca por `owner_user_id`.
+- **`src/providers/AuthProvider.tsx`**: Adicionado `error`, `clearError()`; try/catch no `loadShop`.
+- **`src/components/ShopSetup.tsx`**: Tela de onboarding com formulário de criação de barbearia.
+- **`src/components/AppLayout.tsx`**: Guardas loading/shop null antes de renderizar app.
 
 ---
 

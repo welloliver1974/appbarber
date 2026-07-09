@@ -1,12 +1,47 @@
+import { useState } from 'react'
 import { useAuth } from '@/providers/AuthProvider'
+import { supabase } from '@/lib/supabase'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Scissors, LogOut, AlertTriangle, Store } from 'lucide-react'
+import { Input } from '@/components/ui/input'
+import { Scissors, Loader2, Store, LogOut } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 
 function ShopSetup() {
-  const { error: authError, clearError, signOut } = useAuth()
+  const [name, setName] = useState('')
+  const [error, setError] = useState('')
+  const [busy, setBusy] = useState(false)
+  const { user, signOut } = useAuth()
   const navigate = useNavigate()
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    const trimmed = name.trim()
+    if (!trimmed || trimmed.length < 2) {
+      setError('O nome deve ter pelo menos 2 caracteres')
+      return
+    }
+    setError('')
+    setBusy(true)
+    try {
+      const { error: insertError } = await supabase
+        .from('shops')
+        .insert({ owner_user_id: user!.id, name: trimmed })
+        .select('*')
+        .single()
+
+      if (insertError) {
+        setError(`Erro ao criar: ${insertError.message}`)
+        return
+      }
+
+      window.location.reload()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erro ao criar barbearia')
+    } finally {
+      setBusy(false)
+    }
+  }
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-indigo-900 via-indigo-950 to-slate-900 p-4">
@@ -20,43 +55,45 @@ function ShopSetup() {
             AppBarber
           </CardTitle>
           <p className="text-[10px] font-medium uppercase tracking-[0.25em] text-muted-foreground/60">Sistema de Gestão</p>
+          <CardDescription className="mt-2">
+            Crie sua barbearia para começar
+          </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4 text-center">
-          {authError ? (
-            <div className="rounded-xl border border-destructive/20 bg-destructive/10 p-4 text-sm text-destructive">
-              <AlertTriangle className="mx-auto mb-2 size-6" />
-              <p className="font-medium">Erro ao carregar dados</p>
-              <p className="mt-1 text-xs opacity-80">{authError}</p>
-              <div className="mt-3 flex justify-center gap-2">
-                <Button type="button" variant="outline" size="sm" onClick={clearError}>
-                  Tentar novamente
-                </Button>
-                <Button type="button" variant="ghost" size="sm" onClick={() => { signOut(); navigate('/login') }}>
-                  Sair
-                </Button>
-              </div>
+        <CardContent>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <label htmlFor="shop-name" className="text-sm font-medium">
+                Nome da Barbearia
+              </label>
+              <Input
+                id="shop-name"
+                placeholder="Ex: Studio Lima"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                required
+                minLength={2}
+                className="border-indigo-500/20 focus:ring-indigo-500"
+                disabled={busy}
+              />
             </div>
-          ) : (
-            <>
-              <div className="rounded-xl border border-indigo-500/10 bg-indigo-500/5 p-6">
-                <Store className="mx-auto mb-3 size-10 text-indigo-500" />
-                <CardDescription className="text-base">
-                  Sua barbearia ainda não foi configurada.
-                </CardDescription>
-                <p className="mt-2 text-sm text-muted-foreground">
-                  Entre em contato com o administrador para criar sua conta.
-                </p>
-              </div>
-              <Button
-                type="button"
-                variant="ghost"
-                className="text-muted-foreground"
-                onClick={() => { signOut(); navigate('/login') }}
-              >
-                <LogOut className="mr-2 size-4" /> Sair
-              </Button>
-            </>
-          )}
+            {error && <p className="text-sm text-destructive">{error}</p>}
+            <Button
+              type="submit"
+              disabled={busy}
+              className="w-full bg-gradient-to-r from-indigo-600 to-blue-600 text-white shadow-md hover:from-indigo-500 hover:to-blue-500"
+            >
+              {busy ? (
+                <><Loader2 className="mr-2 size-4 animate-spin" /> Criando...</>
+              ) : (
+                <><Store className="mr-2 size-4" /> Criar Barbearia</>
+              )}
+            </Button>
+          </form>
+          <div className="mt-4 text-center">
+            <Button type="button" variant="ghost" size="sm" className="text-muted-foreground" onClick={() => { signOut(); navigate('/login') }}>
+              <LogOut className="mr-2 size-3" /> Sair
+            </Button>
+          </div>
         </CardContent>
       </Card>
     </div>
