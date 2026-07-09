@@ -134,7 +134,7 @@ function AppLayout() {
               </Button>
             )
           })}
-          {shop ? (
+          {isAdmin && shop ? (
             <Button
               className="justify-start bg-transparent text-indigo-200 hover:bg-white/10 hover:text-white transition-all duration-200"
               onClick={() => window.open(buildPublicSiteUrl(shop.public_slug), '_blank')}
