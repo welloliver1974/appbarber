@@ -30,8 +30,26 @@ export function isPrivateAppHost(hostname = window.location.hostname) {
 
 export function shouldRenderPublicSite() {
   if (typeof window === 'undefined') return false
+  
+  const path = window.location.pathname
+  // Se o caminho for explicitamente uma rota do admin do SaaS, não renderiza o site público
+  const isAdminPath = [
+    '/login', 
+    '/barbers', 
+    '/services', 
+    '/clients', 
+    '/appointments', 
+    '/whatsapp', 
+    '/reports', 
+    '/settings'
+  ].some(route => path === route || path.startsWith(route + '/'))
+
+  if (isAdminPath) return false
+
   const params = new URLSearchParams(window.location.search)
   if (params.get('public') === '1') return true
+  if (params.get('public') === '0') return false
+
   return !isPrivateAppHost(window.location.hostname)
 }
 

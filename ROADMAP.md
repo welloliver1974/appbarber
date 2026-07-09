@@ -92,7 +92,7 @@ Estas ações são **manuais** e desbloquearão os bugs ativos em produção.
   npx supabase functions deploy reengage --project-ref chtjqqtvvlamrdesaiwp
   ```
 
-- [ ] **[GIT]** Push para Vercel (auto-deploy):
+- [x] **[GIT]** Push para Vercel (auto-deploy) ✅ _2026-07-09_
   ```bash
   git push origin main
   ```
