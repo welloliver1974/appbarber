@@ -21,7 +21,7 @@ interface ShopRow {
   created_at: string
 }
 
-const EDGE_FUNCTION_URL = `${supabaseUrl}/functions/v1/create-auth-user`
+const EDGE_FUNCTION_URL = `${supabaseUrl.replace(/\/$/, '')}/functions/v1/create-auth-user`
 
 function AdminPage() {
   const [shops, setShops] = useState<ShopRow[]>([])
@@ -90,10 +90,23 @@ function AdminPage() {
         body: JSON.stringify({ email: authEmail, password: password.trim() }),
       })
 
-      const result = await res.json()
+      let result: { user_id?: string; error?: string }
+      try {
+        result = await res.json()
+      } catch {
+        toast.error('Resposta inválida da Edge Function (status ' + res.status + ')')
+        setSaving(false)
+        return
+      }
 
       if (!res.ok) {
-        toast.error('Erro ao criar usuário: ' + (result.error || 'Erro desconhecido'))
+        toast.error('Erro ao criar usuário: ' + (result.error || 'Status ' + res.status))
+        setSaving(false)
+        return
+      }
+
+      if (!result.user_id) {
+        toast.error('Resposta inválida: user_id não recebido')
         setSaving(false)
         return
       }
