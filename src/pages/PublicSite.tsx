@@ -504,6 +504,9 @@ function PublicSite() {
   const heroBg = heroPhoto
     ? `linear-gradient(rgba(5, 5, 5, 0.70), rgba(5, 5, 5, 0.90)), url(${heroPhoto})`
     : 'linear-gradient(180deg, #0e0e0e 0%, #050505 100%)'
+  const bookingBg = heroPhoto
+    ? `linear-gradient(rgba(5, 5, 5, 0.70), rgba(5, 5, 5, 0.88)), url(${heroPhoto})`
+    : undefined
 
   return (
     <div className="min-h-screen bg-[#050505] text-neutral-100 font-sans relative">
@@ -636,7 +639,13 @@ function PublicSite() {
         </ScrollRevealSection>
 
         {/* ── Agendamento Widget ── */}
-        <ScrollRevealSection>
+        <section
+          className="relative bg-cover bg-center bg-no-repeat"
+          style={bookingBg ? { backgroundImage: bookingBg } : undefined}
+        >
+          <div className="absolute inset-0 bg-gradient-to-b from-[#050505] via-transparent to-[#050505] pointer-events-none" />
+          <div className="relative z-10 py-16 md:py-20">
+          <ScrollRevealSection>
           <div id="agendar" className="scroll-mt-12">
             <SectionHeading overline="Reserva" title="Agende sua experiência" />
             <div className="rounded-2xl border border-white/[0.05] bg-neutral-900/30 overflow-hidden backdrop-blur-md">
@@ -1101,6 +1110,8 @@ function PublicSite() {
             </div>
           </div>
         </ScrollRevealSection>
+        </div>
+        </section>
 
         {/* ── Depoimentos / Social Proof ── */}
         <ScrollRevealSection>
