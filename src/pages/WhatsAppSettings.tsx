@@ -458,12 +458,17 @@ function WhatsAppSettings() {
                         const file = e.target.files?.[0]
                         if (!file || !targetShopId) return
                         await ensureGalleryBucket()
-                        const url = await uploadHeroPhoto(targetShopId, file)
-                        if (url) {
-                          setSiteHeroPhoto(url)
-                          toast.success('Hero atualizado!')
-                        } else {
-                          toast.error('Erro ao fazer upload. Verifique bucket e permissões no Supabase.')
+                        try {
+                          const url = await uploadHeroPhoto(targetShopId, file)
+                          if (url) {
+                            setSiteHeroPhoto(url)
+                            toast.success('Hero atualizado!')
+                          } else {
+                            toast.error('Erro ao fazer upload (upload retornou vazio).')
+                          }
+                        } catch (err) {
+                          const msg = err instanceof Error ? err.message : String(err)
+                          toast.error('Erro no upload: ' + msg)
                         }
                       }}
                     />
@@ -485,15 +490,20 @@ function WhatsAppSettings() {
                           if (!files.length || !targetShopId) return
                           await ensureGalleryBucket()
                           const urls: string[] = []
-                          for (const file of files) {
-                            const url = await uploadGalleryPhoto(targetShopId, file)
-                            if (url) urls.push(url)
-                          }
-                          if (urls.length) {
-                            setSiteGalleryPhotos([...siteGalleryPhotos, ...urls])
-                            toast.success(`${urls.length} foto(s) adicionada(s)!`)
-                          } else {
-                            toast.error('Erro ao fazer upload. Verifique bucket e permissões no Supabase.')
+                          try {
+                            for (const file of files) {
+                              const url = await uploadGalleryPhoto(targetShopId, file)
+                              if (url) urls.push(url)
+                            }
+                            if (urls.length) {
+                              setSiteGalleryPhotos([...siteGalleryPhotos, ...urls])
+                              toast.success(`${urls.length} foto(s) adicionada(s)!`)
+                            } else {
+                              toast.error('Erro ao fazer upload (upload retornou vazio).')
+                            }
+                          } catch (err) {
+                            const msg = err instanceof Error ? err.message : String(err)
+                            toast.error('Erro no upload: ' + msg)
                           }
                         }}
                       />

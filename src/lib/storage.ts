@@ -16,7 +16,7 @@ export async function uploadHeroPhoto(shopId: string, file: File): Promise<strin
 
   if (error) {
     console.error('[Storage] Erro ao upload hero:', error.message)
-    return null
+    throw error
   }
 
   const { data: urlData } = supabase.storage
@@ -37,7 +37,7 @@ export async function uploadGalleryPhoto(shopId: string, file: File): Promise<st
 
   if (error) {
     console.error('[Storage] Erro ao upload galeria:', error.message)
-    return null
+    throw error
   }
 
   const { data: urlData } = supabase.storage
@@ -73,7 +73,7 @@ export async function uploadLogoPhoto(shopId: string, file: File): Promise<strin
 
   if (error) {
     console.error('[Storage] Erro ao upload logo:', error.message)
-    return null
+    throw error
   }
 
   const { data: urlData } = supabase.storage
