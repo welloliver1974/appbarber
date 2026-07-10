@@ -270,4 +270,5 @@ src/
 - **`src/pages/WhatsAppSettings.tsx`:** Chamadas a `ensureGalleryBucket()` antes de uploads; bucket `gallery` criado via SQL + policies de Storage RLS
 - **`supabase/storage_rls.sql`:** Políticas para anon ler/escrever/deletar objetos no bucket `gallery`
 - **Vercel deploy:** Múltiplos deploys em `https://appbarber-rose.vercel.app` (8 deploys)
-- **Git:** `7875832..cf1570c` + `cf1570c..2042256` + commit extra — push para `origin main`
+- **Git:** `7875832..208babd` — push para `origin main`
+- **⚠️ PENDENTE:** Upload de fotos no Storage não funciona — bucket `gallery` foi criado + políticas RLS adicionadas, mas upload ainda falha (verificar `ensureGalleryBucket()` e permissões Storage no Supabase Dashboard)
