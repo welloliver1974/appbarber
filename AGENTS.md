@@ -283,6 +283,10 @@ src/
 - **BUG-8** `src/pages/PublicSite.tsx` (5 ocorrências): `text-neutral-450` → `text-neutral-400` (classe inexistente no Tailwind v4)
 - **build:** `npm run build` validado após cada correção
 
+### Sessão 16.1 — Botão "Copiar link" → "Abrir site público" (2026-07-10)
+- **`src/pages/WhatsAppSettings.tsx`**: Botão "Copiar link do site" substituído por "Abrir site público" (`window.open`), removido estado `copiedLink` e ícone `Copy` não utilizado
+- **build:** `npm run build` validado
+
 ### Sessão 15 — Correção Upload de Imagens + Botão Salvar Horários (2026-07-10)
 - **Problema 1:** Upload de fotos (hero/galeria) não funcionava por 3 causas:
   - `ensureGalleryBucket()` tentava criar bucket via client-side (`createBucket` requer `service_role`) — sempre falhava

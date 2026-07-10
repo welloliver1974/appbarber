@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import PageTransition from '@/components/PageTransition'
-import { MessageSquare, Check, X, Loader2, Save, Zap, ShieldCheck, Wifi, AlertTriangle, Globe, Copy, Plus, Trash2, Upload, Store } from 'lucide-react'
+import { MessageSquare, Check, X, Loader2, Save, Zap, ShieldCheck, Wifi, AlertTriangle, Globe, Plus, Trash2, Upload, Store } from 'lucide-react'
 import { toast } from 'sonner'
 import { useAuth } from '@/providers/AuthProvider'
 import { buildPublicSiteUrl } from '@/lib/site'
@@ -44,7 +44,7 @@ function WhatsAppSettings() {
   const [siteGalleryPhotos, setSiteGalleryPhotos] = useState<string[]>([])
   const [siteWorkingHours, setSiteWorkingHours] = useState<Record<string, { start: string; end: string }>>({})
   const [savingSite, setSavingSite] = useState(false)
-  const [copiedLink, setCopiedLink] = useState(false)
+
   const [sitePublicSlug, setSitePublicSlug] = useState<string | null>(null)
 
   const targetShopId = selectedShopId || shop?.id
@@ -577,20 +577,10 @@ function WhatsAppSettings() {
                   {sitePublicSlug ? (
                     <Button
                       variant="secondary"
-                      onClick={() => {
-                        const url = buildPublicSiteUrl(sitePublicSlug)
-                        navigator.clipboard.writeText(url)
-                        setCopiedLink(true)
-                        toast.success('Link copiado!')
-                        setTimeout(() => setCopiedLink(false), 3000)
-                      }}
+                      onClick={() => window.open(buildPublicSiteUrl(sitePublicSlug), '_blank')}
                       className="flex-1"
                     >
-                      {copiedLink ? (
-                        <><Check className="mr-2 size-4" /> Copiado!</>
-                      ) : (
-                        <><Copy className="mr-2 size-4" /> Copiar link do site</>
-                      )}
+                      <Globe className="mr-2 size-4" /> Abrir site público
                     </Button>
                   ) : null}
                 </div>
