@@ -183,11 +183,49 @@ Estas ações são **manuais** e desbloquearão os bugs ativos em produção.
 
 ---
 
+## 🟣 FASE 4 — Melhorias Futuras
+
+### Site Público
+- [ ] Depoimentos dinâmicos (hoje são fixos no código `TESTIMONIALS`)
+- [ ] Portfólio de fotos por barbeiro
+- [ ] Link "Agendar" direto pro WhatsApp como fallback
+- [ ] Página de confirmação com opção "Adicionar ao calendário" (.ics)
+
+### Admin
+- [ ] Dashboard global do admin (visão de todas as lojas + métricas consolidadas)
+- [ ] Notificações no browser (Service Worker) quando cliente agenda
+- [ ] Botão "duplicar horários da semana" nos barbeiros
+- [ ] Exportar relatórios pra CSV/PDF
+- [ ] Upload de logo integrado no `ShopSettings.tsx`
+
+### Técnico
+- [ ] Lazy loading com `React.lazy()` + `Suspense` (chunk de 938KB)
+- [ ] TanStack Query para cache e refetch automático
+- [ ] Error boundaries por página
+- [ ] Testes automatizados (vitest + playwright)
+
+### Qualidade de Vida
+- [ ] Busca de clientes por telefone
+- [ ] Tempo real via Supabase Realtime (dashboard atualizar sozinho)
+- [ ] Atalhos de teclado (ex: `N` pra novo agendamento)
+- [ ] Confirmação ao sair de formulários com dados não salvos
+- [ ] Paginação em listas longas (clientes, agendamentos)
+
+---
+
 ## 🔧 Dívidas Técnicas (código existente a corrigir)
 
 | Item | Arquivo | Problema | Prioridade |
 |---|---|---|---|
 | ~~RHF + Zod~~ | ~~`ShopSettings.tsx`~~ | ~~Resolvido em `0a6b0ea`~~ | ~~Alta~~ |
+| ✅ RLS is_admin | Sessions 14-15 | Policies de shops e whatsapp_configs corrigidas | Crítica |
+| 🔴 Timezone | `availability.ts:45` | `new Date('T00:00:00')` não é UTC-3 | Crítica |
+| 🔴 Shop isolation | `evolution.ts:9-18` | `getConfig()` ignora shop_id | Crítica |
+| 🟠 Empty array | `Appointments.tsx:121` | `.in('id', [])` crasha | Alta |
+| 🟠 Buffer | `Booking.tsx:96,148` / `Appointments.tsx:73` | Buffer minutes ignorados | Alta |
+| 🟡 RPCs | `AdminPage.tsx` | RPCs update/delete podem não existir | Média |
+| 🟡 Deps loop | `PublicSite.tsx:232` | Re-fetch infinito | Média |
+| 🟡 Tailwind | `PublicSite.tsx` | `text-neutral-450` inválida | Média |
 | Checkmark ROADMAP | Este arquivo | Marcar checkboxes após concluir cada item | Contínua |
 
 ---

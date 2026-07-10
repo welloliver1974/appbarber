@@ -102,7 +102,7 @@ Se não: pedir para executar no Supabase Dashboard → SQL Editor.
 - `reengage`: precisa rodar `npx supabase functions deploy reengage --project-ref chtjqqtvvlamrdesaiwp`
 
 ### STEP 3: Bugs Conhecidos (corrigir em ordem)
-1. **[CRITICAL] RLS: UPDATE policies sem `is_admin()`** — Migration `20260710160000_fix_admin_rls_update.sql` precisa ser executada. Sem ela, admin não consegue salvar working_hours, whatsapp_config, nem qualquer UPDATE via REST API. O Supabase retorna sucesso (0 linhas) sem erro. ✅ _migration criada, falta executar no Cloud_
+1. **[CRITICAL] RLS: UPDATE policies sem `is_admin()`** — ✅ _corrigido na sessão 15 (SQL executado diretamente no Cloud)_
 2. **[CRITICAL] `src/lib/availability.ts:45-46`** — `new Date(dateStr + 'T00:00:00')` usa timezone local do browser, não UTC-3. Quebra disponibilidade para usuários fora do fuso -03.
 3. **[CRITICAL] `src/lib/evolution.ts:9-18`** — `getConfig()` retorna primeira config ativa ignorando shop_id. Todas as lojas compartilham mesma instância WhatsApp.
 4. **[HIGH] `src/pages/Appointments.tsx:121`** — `clientIds` vazio crasha Supabase (`.in('id', [])`).
@@ -112,10 +112,46 @@ Se não: pedir para executar no Supabase Dashboard → SQL Editor.
 8. **[MEDIUM] `src/pages/PublicSite.tsx:232`** — `serviceIds` array no deps causa re-fetch infinito.
 9. **[MEDIUM] `src/pages/PublicSite.tsx`** — Classes Tailwind inválidas `text-neutral-450`.
 
-### STEP 4: Phase 3 — Novas Features (só após bugs críticos resolvidos)
-1. **[FEAT-4] Multi-serviço no Admin**: `Appointments.tsx` + `Booking.tsx` — múltiplos serviços por agendamento
-2. **[FEAT-5] `price_at_booking`**: Histórico de preços nos relatórios
-3. **[FEAT-6] Reagendamento em `ManageBooking`**: Autosserviço pelo cliente
+### STEP 4: Deploy Pendente (FASE 0 — manual)
+- **[SQL-A]** Rodar no Supabase SQL Editor: `ALTER TABLE services ADD COLUMN IF NOT EXISTS buffer_minutes INTEGER NOT NULL DEFAULT 0;`
+- **[SQL-B]** Rodar no Supabase SQL Editor: `cancel_token` em appointments, `phone` em barbers, `reengage_interval_days` em whatsapp_configs
+- **[SQL-C]** Rodar no Supabase SQL Editor: cron `send-reengage` no pg_cron (13h UTC diário)
+- **[DEPLOY]** `npx supabase functions deploy notify-appointment --project-ref chtjqqtvvlamrdesaiwp`
+- **[DEPLOY]** `npx supabase functions deploy reengage --project-ref chtjqqtvvlamrdesaiwp`
+- **[GIT]** `git push origin main` (enviar tudo que está local para o Vercel)
+
+### STEP 5: Phase 3 — Novas Features (só após bugs + deploy resolvidos)
+1. **[FEAT-4] Multi-serviço no Admin**: `Appointments.tsx` + `Booking.tsx` — replicar lógica de `serviceIds[]` e `totalDuration` do `PublicSite.tsx`
+2. **[FEAT-5] `price_at_booking`**: Adicionar coluna `price_at_booking NUMERIC(10,2)` em appointments, salvar preço no momento do agendamento, usar nos relatórios em vez de `services.price`
+3. **[FEAT-6] Reagendamento em `ManageBooking`**: Além de cancelar, permitir que o cliente escolha nova data/hora (reutilizar `getAvailableSlots`)
+
+### STEP 6: Melhorias Futuras (após fechar roadmap)
+
+**Site Público:**
+- Depoimentos dinâmicos (hoje são fixos no código `TESTIMONIALS`)
+- Portfólio de fotos por barbeiro
+- Link "Agendar" direto pro WhatsApp da barbearia como fallback
+- Página de confirmação com opção "Adicionar ao calendário" (.ics)
+
+**Admin:**
+- Dashboard global do admin (visão de todas as lojas + métricas consolidadas)
+- Notificações no browser (Service Worker) quando cliente agenda
+- Botão "duplicar horários da semana" nos barbeiros (copiar configuração de um dia pra outro)
+- Exportar relatórios pra CSV/PDF
+- Upload de logo integrado no ShopSettings (já tem o bucket, falta hook no form)
+
+**Técnico:**
+- Lazy loading com `React.lazy()` + `Suspense` (já tem warning de chunk de 938KB)
+- React Query / TanStack Query para cache e refetch automático
+- Error boundaries por página (hoje um erro inesperado quebra o app inteiro)
+- Testes automatizados (vitest + playwright)
+
+**Qualidade de Vida:**
+- Busca de clientes por telefone
+- Tempo real via Supabase Realtime (dashboard atualizar sozinho)
+- Atalhos de teclado (ex: `N` pra novo agendamento)
+- Confirmação ao sair de formulários com dados não salvos
+- Paginação em listas longas (clientes, agendamentos)
 
 ---
 
