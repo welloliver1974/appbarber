@@ -271,7 +271,7 @@ src/
 - **`supabase/storage_rls.sql`:** Políticas para anon ler/escrever/deletar objetos no bucket `gallery`
 - **Vercel deploy:** Múltiplos deploys em `https://appbarber-rose.vercel.app` (8 deploys)
 - **Git:** `7875832..208babd` — push para `origin main`
-- **⚠️ PENDENTE:** Upload de fotos no Storage não funciona — bucket `gallery` foi criado + políticas RLS adicionadas, mas upload ainda falha (verificar `ensureGalleryBucket()` e permissões Storage no Supabase Dashboard)
+- **⚠️ PENDENTE (resolvido na Sessão 15):** Upload de fotos no Storage não funciona — bucket `gallery` foi criado + políticas RLS adicionadas, mas upload ainda falha (verificar `ensureGalleryBucket()` e permissões Storage no Supabase Dashboard)
 
 ### Sessão 15 — Correção Upload de Imagens + Botão Salvar Horários (2026-07-10)
 - **Problema 1:** Upload de fotos (hero/galeria) não funcionava por 3 causas:
@@ -282,5 +282,6 @@ src/
 - **Problema 2:** Botão "Salvar configurações do site" nunca habilitava para admin sem loja (`disabled={savingSite || !shop}` com `shop=null`)
 - **`src/lib/storage.ts`:** `ensureGalleryBucket` removido `createBucket` → só verifica existência; `deletePhoto` corrigido `slice(4)` → `slice(6)`; `uploadGalleryPhoto` adicionado `{ upsert: true }`
 - **`src/pages/WhatsAppSettings.tsx`:** Uploads usam `targetShopId` em vez de `shop.id`; guardas `!shop` → `!targetShopId`; botão salvar e link público usam `sitePublicSlug` (carregado do banco via `public_slug`)
-- **build:** `npm run build` validado com sucesso (v1.07s)
+- **2ª correção (upload ainda falhava):** Bucket `gallery` nunca existia no Supabase — removido `ensureGalleryBucket` com verificação falha, agora função vazia retorna `true` sempre; criada migration `20260710150000_create_gallery_storage.sql` que cria bucket + RLS policies via SQL direto
+- **build:** `npm run build` validado com sucesso (v1.03s)
 

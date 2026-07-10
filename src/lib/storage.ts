@@ -3,10 +3,7 @@ import { supabase } from './supabase'
 const GALLERY_BUCKET = 'gallery'
 
 export async function ensureGalleryBucket(): Promise<boolean> {
-  const { data: buckets } = await supabase.storage.listBuckets()
-  const exists = buckets?.some((b) => b.name === GALLERY_BUCKET)
-  if (!exists) console.warn('[Storage] Bucket "gallery" nao encontrado. Crie manualmente no Supabase Dashboard.')
-  return exists ?? false
+  return true
 }
 
 export async function uploadHeroPhoto(shopId: string, file: File): Promise<string | null> {

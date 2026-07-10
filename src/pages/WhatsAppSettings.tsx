@@ -444,13 +444,13 @@ function WhatsAppSettings() {
                       onChange={async (e) => {
                         const file = e.target.files?.[0]
                         if (!file || !targetShopId) return
-                        if (!(await ensureGalleryBucket())) return
+                        await ensureGalleryBucket()
                         const url = await uploadHeroPhoto(targetShopId, file)
                         if (url) {
                           setSiteHeroPhoto(url)
                           toast.success('Hero atualizado!')
                         } else {
-                          toast.error('Erro ao fazer upload. Verifique se o bucket "gallery" existe.')
+                          toast.error('Erro ao fazer upload. Verifique bucket e permissões no Supabase.')
                         }
                       }}
                     />
@@ -470,7 +470,7 @@ function WhatsAppSettings() {
                         onChange={async (e) => {
                           const files = Array.from(e.target.files ?? [])
                           if (!files.length || !targetShopId) return
-                          if (!(await ensureGalleryBucket())) return
+                          await ensureGalleryBucket()
                           const urls: string[] = []
                           for (const file of files) {
                             const url = await uploadGalleryPhoto(targetShopId, file)
@@ -480,7 +480,7 @@ function WhatsAppSettings() {
                             setSiteGalleryPhotos([...siteGalleryPhotos, ...urls])
                             toast.success(`${urls.length} foto(s) adicionada(s)!`)
                           } else {
-                            toast.error('Erro ao fazer upload. Verifique se o bucket "gallery" existe.')
+                            toast.error('Erro ao fazer upload. Verifique bucket e permissões no Supabase.')
                           }
                         }}
                       />
