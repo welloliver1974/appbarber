@@ -374,6 +374,7 @@ function PublicSite() {
         shop_id: shop.id, barber_id: barberId, service_id: serviceIds[0],
         client_id: clientId, start_time: startTime.toISOString(),
         end_time: endTime.toISOString(), status: 'pending',
+        price_at_booking: totalPrice,
         notes,
       })
       if (appointmentError) throw appointmentError

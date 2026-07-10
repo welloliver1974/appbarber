@@ -74,6 +74,7 @@ export interface Appointment {
   start_time: string
   end_time: string
   status: 'pending' | 'confirmed' | 'cancelled' | 'completed'
+  price_at_booking: number | null
   cancel_token: string | null
   notes: string | null
   created_at: string

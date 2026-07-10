@@ -143,9 +143,9 @@ Todos os 8 bugs corrigidos na Sessão 16. Build validado após cada correção.
   1. `ALTER TABLE appointments ADD COLUMN price_at_booking NUMERIC(10,2);`
   2. Em todos os fluxos de criação de agendamento, salvar `price_at_booking: selectedService.price`.
   3. Em `Reports.tsx`, usar `price_at_booking` no lugar de `services.price`.
-- [ ] Migration aplicada
-- [ ] Fluxos de criação atualizados (PublicSite, Appointments, Booking)
-- [ ] `Reports.tsx` atualizado
+- [x] Migration aplicada ✅ _2026-07-10_
+- [x] Fluxos de criação atualizados (PublicSite, Appointments, Booking) ✅ _2026-07-10_
+- [x] `Reports.tsx` atualizado + Dashboard com card de faturamento ✅ _2026-07-10_
 
 ### [FEAT-6] Reagendamento no `ManageBooking` (além do cancelamento)
 - **Arquivo**: `src/pages/ManageBooking.tsx`
@@ -199,6 +199,23 @@ Todos os 8 bugs corrigidos na Sessão 16. Build validado após cada correção.
 | ✅ Deps loop | `PublicSite.tsx:232` | Corrigido — `join(',')` | Sessão 16 |
 | ✅ Tailwind | `PublicSite.tsx` | Corrigido — `neutral-400` | Sessão 16 |
 | Checkmark ROADMAP | Este arquivo | Marcar checkboxes após concluir cada item | Contínua |
+
+---
+
+### ✅ FEAT-5 completo em 2026-07-10 — `price_at_booking` + Faturamento na Dashboard
+
+| Migration | Status |
+|---|---|
+| `20260710170000_add_price_at_booking.sql` | ✅ Aplicado via CLI |
+
+**Alterações:**
+- Migration: `ALTER TABLE appointments ADD COLUMN price_at_booking NUMERIC(10,2)`
+- `src/types/database.ts`: `Appointment.price_at_booking` adicionado
+- `Appointments.tsx`: salva `price_at_booking` no insert
+- `Booking.tsx`: salva `price_at_booking` no insert
+- `PublicSite.tsx`: salva `totalPrice` como `price_at_booking`
+- `Reports.tsx`: usa `price_at_booking` com fallback `services.price`
+- `Dashboard.tsx`: novo card **Faturamento do Mês** (5º card) com `price_at_booking` de appointments completed do mês
 
 ---
 

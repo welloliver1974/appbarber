@@ -3,6 +3,25 @@
 > 🚨 **IMPORTANT**: READ THIS BEFORE TAKING ANY ACTION.
 > Any AI agent accessing this codebase MUST follow this guide. Do not reverse, rewrite, or roll back features from completed sessions.
 
+## Current State (Session 17 Complete — FEAT-5: price_at_booking + Faturamento na Dashboard)
+
+All code fully written, validated with `npm run build`.
+
+### Completed in Session 17 — FEAT-5: `price_at_booking` + Faturamento na Dashboard (2026-07-10)
+- **Migration**: `20260710170000_add_price_at_booking.sql` — `ALTER TABLE appointments ADD COLUMN price_at_booking NUMERIC(10,2)`
+- **`database.ts`**: `price_at_booking: number | null` adicionado na interface `Appointment`
+- **`Appointments.tsx`**: salva `price_at_booking: selectedService?.price` no insert
+- **`Booking.tsx`**: salva `price_at_booking: selectedService?.price` no insert
+- **`PublicSite.tsx`**: salva `totalPrice` (soma dos serviços) como `price_at_booking`
+- **`Reports.tsx`**: cálculos de revenue usam `a.price_at_booking` com fallback `servicePriceMap.get(a.service_id) ?? 0`
+- **`Dashboard.tsx`**: novo card **"Faturamento do Mês"** — 5º card, grid `sm:grid-cols-3 lg:grid-cols-5`, busca completed appointments do mês com `price_at_booking`, exibe em formato R$
+- **Migration aplicada no Supabase Cloud** via CLI
+- **Backfill**: appointments antigos preenchidos com `services.price` atual
+
+### New State — STEP 5 tasks remaining:
+1. **[FEAT-4] Multi-serviço no Admin**: `Appointments.tsx` + `Booking.tsx`
+2. **[FEAT-6] Reagendamento em `ManageBooking`**
+
 ## Current State (Session 16 Complete — Fix 8 Bugs Técnicos)
 
 All code fully written, validated with `npm run build`.

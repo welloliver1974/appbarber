@@ -283,6 +283,18 @@ src/
 - **BUG-8** `src/pages/PublicSite.tsx` (5 ocorrências): `text-neutral-450` → `text-neutral-400` (classe inexistente no Tailwind v4)
 - **build:** `npm run build` validado após cada correção
 
+### Sessão 17 — FEAT-5: `price_at_booking` + Faturamento na Dashboard (2026-07-10)
+- **`supabase/migrations/20260710170000_add_price_at_booking.sql`**: Migration adiciona `price_at_booking NUMERIC(10,2)` em `appointments`
+- **`src/types/database.ts`**: Adicionado `price_at_booking: number | null` na interface `Appointment`
+- **`src/pages/Appointments.tsx`**: Salva `price_at_booking: selectedService?.price` no insert
+- **`src/pages/Booking.tsx`**: Salva `price_at_booking: selectedService?.price` no insert
+- **`src/pages/PublicSite.tsx`**: Salva `totalPrice` (soma dos serviços) como `price_at_booking` no insert
+- **`src/pages/Reports.tsx`**: Substituído `servicePriceMap.get(a.service_id)` por `a.price_at_booking ?? servicePriceMap.get(a.service_id) ?? 0` nos 3 cálculos (total, barberStats, monthlyStats). Mantém `services` query como fallback p/ registros antigos
+- **`src/pages/Dashboard.tsx`**: Adicionado 5º card "Faturamento do Mês" (ícone DollarSign, verde). Grid `sm:grid-cols-3 lg:grid-cols-5`. Query busca `price_at_booking` de appointments completed do mês atual. Skeleton ajustado p/ 5 cards. Valor formatado em R$ via `Intl.NumberFormat`
+- **Supabase Cloud**: Migration aplicada via CLI (`ALTER TABLE ... ADD COLUMN`)
+- **Backfill**: UPDATE executado para preencher `price_at_booking` nos 3 appointments existentes (usando `services.price` atual)
+- **build:** `npm run build` validado
+
 ### Sessão 16.1 — Botão "Copiar link" → "Abrir site público" (2026-07-10)
 - **`src/pages/WhatsAppSettings.tsx`**: Botão "Copiar link do site" substituído por "Abrir site público" (`window.open`), removido estado `copiedLink` e ícone `Copy` não utilizado
 - **build:** `npm run build` validado

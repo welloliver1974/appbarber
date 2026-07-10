@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { StatsCardSkeleton } from '@/components/Skeleton'
 import { Button } from '@/components/ui/button'
@@ -13,8 +13,9 @@ import {
   getUTC3TimeParts,
   getUTC3WeekStart,
   startOfUTC3DayISO,
+  startOfUTC3MonthISO,
 } from '@/lib/timezone'
-import { AlertCircle, Calendar, CheckCircle2, ChevronLeft, ChevronRight, Clock, TrendingUp, Users, Scissors, XCircle } from 'lucide-react'
+import { AlertCircle, Calendar, CheckCircle2, ChevronLeft, ChevronRight, Clock, DollarSign, TrendingUp, Users, Scissors, XCircle } from 'lucide-react'
 import { useAuth } from '@/providers/AuthProvider'
 import type { Barber } from '@/types/database'
 
@@ -25,6 +26,7 @@ interface DashboardCounts {
   services: number
   todayAppointments: number
   totalAppointments: number
+  monthRevenue: number
 }
 
 interface ScheduleAppt {
@@ -107,6 +109,10 @@ const cards = [
     label: 'Total Agendamentos', icon: Clock, from: 'from-indigo-500', to: 'to-purple-600',
     border: 'border-indigo-500/20', shadow: 'shadow-indigo-500/10', delay: 300,
   },
+  {
+    label: 'Faturamento do Mês', icon: DollarSign, from: 'from-emerald-500', to: 'to-teal-600',
+    border: 'border-emerald-500/20', shadow: 'shadow-emerald-500/10', delay: 400,
+  },
 ]
 
 const statusColors: Record<string, string> = {
@@ -166,6 +172,8 @@ function Dashboard() {
 
   const weekDays = getWeekDays(weekStart)
 
+  const currency = useMemo(() => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }), [])
+
   useEffect(() => {
     if (shopLoading) return
     if (!shop) {
@@ -174,6 +182,7 @@ function Dashboard() {
         services: 0,
         todayAppointments: 0,
         totalAppointments: 0,
+        monthRevenue: 0,
       })
       setMetrics({
         nextTwoHours: 0,
@@ -199,7 +208,9 @@ function Dashboard() {
         const nextTwoHours = new Date(now)
         nextTwoHours.setHours(nextTwoHours.getHours() + 2)
 
-        const [barbersCountRes, servicesCountRes, appointmentsCountRes, barbersListRes, todayAppointmentsRes, upcomingRes] = await Promise.all([
+        const monthStart = startOfUTC3MonthISO(now, 0)
+
+        const [barbersCountRes, servicesCountRes, appointmentsCountRes, barbersListRes, todayAppointmentsRes, upcomingRes, monthRevenueRes] = await Promise.all([
           supabase.from('barbers').select('*', { count: 'exact', head: true }).eq('shop_id', activeShop.id),
           supabase.from('services').select('*', { count: 'exact', head: true }).eq('shop_id', activeShop.id),
           supabase.from('appointments').select('*', { count: 'exact', head: true }).eq('shop_id', activeShop.id),
@@ -220,6 +231,13 @@ function Dashboard() {
             .neq('status', 'cancelled')
             .order('start_time')
             .limit(5),
+          supabase
+            .from('appointments')
+            .select('price_at_booking')
+            .eq('shop_id', activeShop.id)
+            .eq('status', 'completed')
+            .gte('start_time', monthStart)
+            .lte('start_time', now.toISOString()),
         ])
 
         if (barbersListRes.error) throw barbersListRes.error
@@ -244,11 +262,15 @@ function Dashboard() {
         const clientMap = new Map((clientsRes.data ?? []).map((c: { id: string; name: string }) => [c.id, c.name]))
         const serviceMap = new Map((servicesRes.data ?? []).map((s: { id: string; name: string }) => [s.id, s.name]))
 
+        const revenueRows = (monthRevenueRes.data ?? []) as Array<{ price_at_booking: number | null }>
+        const monthRevenue = revenueRows.reduce((sum, r) => sum + (r.price_at_booking ?? 0), 0)
+
         setCounts({
           barbers: barbersCountRes.count ?? 0,
           services: servicesCountRes.count ?? 0,
           todayAppointments: rawToday.length,
           totalAppointments: appointmentsCountRes.count ?? 0,
+          monthRevenue,
         })
 
         setBarbers((barbersListRes.data ?? []) as Barber[])
@@ -402,13 +424,16 @@ function Dashboard() {
 
         {!counts ? (
           <div className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {Array.from({ length: 4 }).map((_, i) => <StatsCardSkeleton key={i} />)}
+            {Array.from({ length: 5 }).map((_, i) => <StatsCardSkeleton key={i} />)}
           </div>
         ) : (
-          <div className="mb-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="mb-8 grid gap-5 sm:grid-cols-3 lg:grid-cols-5">
             {cards.map((card, i) => {
               const Icon = card.icon
-              const value = counts[['barbers', 'services', 'todayAppointments', 'totalAppointments'][i] as keyof DashboardCounts]
+              const keyMap = ['barbers', 'services', 'todayAppointments', 'totalAppointments', 'monthRevenue'] as const
+              const rawValue = counts[keyMap[i]]
+              const isCurrency = card.label === 'Faturamento do Mês'
+              const value = isCurrency ? currency.format(rawValue) : String(rawValue)
               return (
                 <div
                   key={card.label}
@@ -424,7 +449,11 @@ function Dashboard() {
                       </div>
                     </div>
                     <p className="text-4xl font-bold tracking-tight">
-                      <AnimatedCounter value={value} duration={1400} />
+                      {isCurrency ? (
+                        <span>{value}</span>
+                      ) : (
+                        <AnimatedCounter value={rawValue} duration={1400} />
+                      )}
                     </p>
                     <div className={`mt-3 h-1 w-12 rounded-full bg-gradient-to-r ${card.from} ${card.to} transition-all duration-300 group-hover:w-full`} />
                   </div>

@@ -212,6 +212,7 @@ function Appointments() {
         start_time: startTime.toISOString(),
         end_time: endTime.toISOString(),
         status: 'confirmed',
+        price_at_booking: selectedService?.price ?? null,
       })
 
       const barber = barbers.find((b) => b.id === barberId)

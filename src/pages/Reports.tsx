@@ -72,13 +72,13 @@ function Reports() {
       ])
 
       const barbers = (barbersRes.data ?? []) as { id: string; name: string }[]
-      const apts = (aptsRes.data ?? []) as Array<{ id: string; barber_id: string; service_id: string; start_time: string; status: string }>
+      const apts = (aptsRes.data ?? []) as Array<{ id: string; barber_id: string; service_id: string; start_time: string; status: string; price_at_booking: number | null }>
       const services = (servicesRes.data ?? []) as { id: string; name: string; price: number }[]
 
       const servicePriceMap = new Map(services.map((s) => [s.id, s.price]))
       const completedApts = apts.filter((a) => a.status === 'completed')
       const cancelledApts = apts.filter((a) => a.status === 'cancelled')
-      const totalRevenue = completedApts.reduce((sum, a) => sum + (servicePriceMap.get(a.service_id) ?? 0), 0)
+      const totalRevenue = completedApts.reduce((sum, a) => sum + (a.price_at_booking ?? servicePriceMap.get(a.service_id) ?? 0), 0)
 
       setSummary({
         total: apts.length,
@@ -92,7 +92,7 @@ function Reports() {
         const barberApts = apts.filter((a) => a.barber_id === b.id)
         const completed = barberApts.filter((a) => a.status === 'completed')
         const cancelled = barberApts.filter((a) => a.status === 'cancelled')
-        const revenue = completed.reduce((sum, a) => sum + (servicePriceMap.get(a.service_id) ?? 0), 0)
+        const revenue = completed.reduce((sum, a) => sum + (a.price_at_booking ?? servicePriceMap.get(a.service_id) ?? 0), 0)
         return {
           name: b.name,
           total: barberApts.length,
@@ -109,7 +109,7 @@ function Reports() {
         const entry = monthMap.get(m) ?? { total: 0, revenue: 0 }
         entry.total++
         if (a.status === 'completed') {
-          entry.revenue += servicePriceMap.get(a.service_id) ?? 0
+          entry.revenue += a.price_at_booking ?? servicePriceMap.get(a.service_id) ?? 0
         }
         monthMap.set(m, entry)
       }

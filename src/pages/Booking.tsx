@@ -173,6 +173,7 @@ function Booking() {
         start_time: startTime.toISOString(),
         end_time: endTime.toISOString(),
         status: 'pending',
+        price_at_booking: selectedService?.price ?? null,
       })
 
       const msg = [
