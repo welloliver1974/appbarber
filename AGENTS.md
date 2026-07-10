@@ -243,5 +243,10 @@ src/
 - **Edge Function deploy**: `npx supabase functions deploy create-auth-user --project-ref chtjqqtvvlamrdesaiwp`
 - **Vercel deploy**: Múltiplos deploys em `https://appbarber-rose.vercel.app`
 - **Git**: Commits `585ff2f` até `a8a003b` (8 commits), push para `origin main`
+- **`src/lib/site.ts`**: `buildPublicSiteUrl` simplificado — sempre usa `/public/{slug}` (remove lógica de subdomínio que quebrava no Vercel)
+- **`src/pages/AdminPage.tsx`**: Adicionado botão "Abrir site público" em cada card de loja no `/admin`
 - **build:** `npm run build` validado após cada alteração
+- **Commits:** `585ff2f` até `8448e2a` (10 commits), push para `origin main`
+- **Vercel deploy**: Múltiplos deploys em `https://appbarber-rose.vercel.app`
+- **Edge Function deploy**: `create-auth-user` deployada via `supabase functions deploy`
 - **⚠️ PENDENTE:** Executar `supabase/fix_rpc_only.sql` no Supabase SQL Editor (RPC functions + coluna `auth_email`)
