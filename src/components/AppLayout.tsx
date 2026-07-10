@@ -117,7 +117,7 @@ function AppLayout() {
             <X className="size-4" />
           </Button>
         </div>
-        <nav className="flex flex-1 flex-col gap-1">
+        <nav className="flex flex-1 flex-col gap-1 overflow-y-auto">
           {navItems.map((item) => {
             const Icon = item.icon
             const active = location.pathname === item.href
