@@ -291,6 +291,7 @@ src/
 - **`src/pages/PublicSite.tsx`**: Salva `totalPrice` (soma dos serviços) como `price_at_booking` no insert
 - **`src/pages/Reports.tsx`**: Substituído `servicePriceMap.get(a.service_id)` por `a.price_at_booking ?? servicePriceMap.get(a.service_id) ?? 0` nos 3 cálculos (total, barberStats, monthlyStats). Mantém `services` query como fallback p/ registros antigos
 - **`src/pages/Dashboard.tsx`**: Adicionado 5º card "Faturamento do Mês" (ícone DollarSign, verde). Grid `sm:grid-cols-3 lg:grid-cols-5`. Query busca `price_at_booking` de appointments completed do mês atual. Skeleton ajustado p/ 5 cards. Valor formatado em R$ via `Intl.NumberFormat`
+- **fix pós-build:** Query de faturamento removia `.lte('start_time', now)` — appointments completed com data futura (ex: marcado como executado antes do horário) ficavam de fora. Removido o `.lte` para incluir todos os completed do mês.
 - **Supabase Cloud**: Migration aplicada via CLI (`ALTER TABLE ... ADD COLUMN`)
 - **Backfill**: UPDATE executado para preencher `price_at_booking` nos 3 appointments existentes (usando `services.price` atual)
 - **build:** `npm run build` validado

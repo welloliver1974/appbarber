@@ -15,6 +15,7 @@ All code fully written, validated with `npm run build`.
 - **`PublicSite.tsx`**: salva `totalPrice` (soma dos serviços) como `price_at_booking`
 - **`Reports.tsx`**: cálculos de revenue usam `a.price_at_booking` com fallback `servicePriceMap.get(a.service_id) ?? 0`
 - **`Dashboard.tsx`**: novo card **"Faturamento do Mês"** — 5º card, grid `sm:grid-cols-3 lg:grid-cols-5`, busca completed appointments do mês com `price_at_booking`, exibe em formato R$
+- **fix pós-build**: query removia `.lte('start_time', now)` — completed futuros ficavam de fora. Removido.
 - **Migration aplicada no Supabase Cloud** via CLI
 - **Backfill**: appointments antigos preenchidos com `services.price` atual
 
