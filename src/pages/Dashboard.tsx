@@ -236,8 +236,7 @@ function Dashboard() {
             .select('price_at_booking')
             .eq('shop_id', activeShop.id)
             .eq('status', 'completed')
-            .gte('start_time', monthStart)
-            .lte('start_time', now.toISOString()),
+            .gte('start_time', monthStart),
         ])
 
         if (barbersListRes.error) throw barbersListRes.error
