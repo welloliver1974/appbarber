@@ -45,6 +45,7 @@ function WhatsAppSettings() {
   const [siteWorkingHours, setSiteWorkingHours] = useState<Record<string, { start: string; end: string }>>({})
   const [savingSite, setSavingSite] = useState(false)
   const [copiedLink, setCopiedLink] = useState(false)
+  const [sitePublicSlug, setSitePublicSlug] = useState<string | null>(null)
 
   const targetShopId = selectedShopId || shop?.id
 
@@ -77,7 +78,7 @@ function WhatsAppSettings() {
           .maybeSingle(),
         supabase
           .from('shops')
-          .select('instagram, hero_photo, gallery_photos, working_hours')
+          .select('instagram, hero_photo, gallery_photos, working_hours, public_slug')
           .eq('id', targetShopId)
           .single(),
       ])
@@ -92,7 +93,8 @@ function WhatsAppSettings() {
       }
 
       if (shopRes.data) {
-        const s = shopRes.data as { instagram: string | null; hero_photo: string | null; gallery_photos: string[] | null; working_hours: Record<string, string> | null }
+        const s = shopRes.data as { instagram: string | null; hero_photo: string | null; gallery_photos: string[] | null; working_hours: Record<string, string> | null; public_slug: string | null }
+        setSitePublicSlug(s.public_slug)
         setSiteInstagram(s.instagram ?? '')
         setSiteHeroPhoto(s.hero_photo ?? '')
         setSiteGalleryPhotos(Array.isArray(s.gallery_photos) ? s.gallery_photos : [])
@@ -441,9 +443,9 @@ function WhatsAppSettings() {
                       className="hidden"
                       onChange={async (e) => {
                         const file = e.target.files?.[0]
-                        if (!file || !shop) return
-                        await ensureGalleryBucket()
-                        const url = await uploadHeroPhoto(shop.id, file)
+                        if (!file || !targetShopId) return
+                        if (!(await ensureGalleryBucket())) return
+                        const url = await uploadHeroPhoto(targetShopId, file)
                         if (url) {
                           setSiteHeroPhoto(url)
                           toast.success('Hero atualizado!')
@@ -467,11 +469,11 @@ function WhatsAppSettings() {
                         multiple
                         onChange={async (e) => {
                           const files = Array.from(e.target.files ?? [])
-                          if (!files.length || !shop) return
-                          await ensureGalleryBucket()
+                          if (!files.length || !targetShopId) return
+                          if (!(await ensureGalleryBucket())) return
                           const urls: string[] = []
                           for (const file of files) {
-                            const url = await uploadGalleryPhoto(shop.id, file)
+                            const url = await uploadGalleryPhoto(targetShopId, file)
                             if (url) urls.push(url)
                           }
                           if (urls.length) {
@@ -541,7 +543,7 @@ function WhatsAppSettings() {
                   <Button
                     onClick={saveSiteSettings}
                     className="flex-1 bg-gradient-to-r from-indigo-600 to-blue-600 text-white shadow-md hover:from-indigo-500 hover:to-blue-500"
-                    disabled={savingSite || !shop}
+                    disabled={savingSite || !targetShopId}
                   >
                     {savingSite ? (
                       <><Loader2 className="mr-2 size-4 animate-spin" /> Salvando...</>
@@ -549,11 +551,11 @@ function WhatsAppSettings() {
                       <><Save className="mr-2 size-4" /> Salvar configurações do site</>
                     )}
                   </Button>
-                  {shop ? (
+                  {sitePublicSlug ? (
                     <Button
                       variant="secondary"
                       onClick={() => {
-                        const url = buildPublicSiteUrl(shop.public_slug)
+                        const url = buildPublicSiteUrl(sitePublicSlug)
                         navigator.clipboard.writeText(url)
                         setCopiedLink(true)
                         toast.success('Link copiado!')
@@ -570,9 +572,9 @@ function WhatsAppSettings() {
                   ) : null}
                 </div>
 
-                {shop ? (
+                  {sitePublicSlug ? (
                   <div className="rounded-xl border border-indigo-500/10 bg-indigo-500/5 p-3 text-sm text-muted-foreground">
-                    <p>Link público: <span className="font-mono text-indigo-300">{buildPublicSiteUrl(shop.public_slug)}</span></p>
+                    <p>Link público: <span className="font-mono text-indigo-300">{buildPublicSiteUrl(sitePublicSlug)}</span></p>
                   </div>
                 ) : null}
               </CardContent>

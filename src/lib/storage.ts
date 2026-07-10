@@ -4,20 +4,9 @@ const GALLERY_BUCKET = 'gallery'
 
 export async function ensureGalleryBucket(): Promise<boolean> {
   const { data: buckets } = await supabase.storage.listBuckets()
-  if (buckets?.some((b) => b.name === GALLERY_BUCKET)) return true
-
-  const { error } = await supabase.storage.createBucket(GALLERY_BUCKET, {
-    public: true,
-    fileSizeLimit: 5 * 1024 * 1024, // 5MB
-    allowedMimeTypes: ['image/jpeg', 'image/png', 'image/webp'],
-  })
-
-  if (error) {
-    console.warn('[Storage] Nao foi possivel criar bucket:', error.message)
-    return false
-  }
-
-  return true
+  const exists = buckets?.some((b) => b.name === GALLERY_BUCKET)
+  if (!exists) console.warn('[Storage] Bucket "gallery" nao encontrado. Crie manualmente no Supabase Dashboard.')
+  return exists ?? false
 }
 
 export async function uploadHeroPhoto(shopId: string, file: File): Promise<string | null> {
@@ -47,7 +36,7 @@ export async function uploadGalleryPhoto(shopId: string, file: File): Promise<st
 
   const { error } = await supabase.storage
     .from(GALLERY_BUCKET)
-    .upload(path, file)
+    .upload(path, file, { upsert: true })
 
   if (error) {
     console.error('[Storage] Erro ao upload galeria:', error.message)
@@ -63,7 +52,7 @@ export async function uploadGalleryPhoto(shopId: string, file: File): Promise<st
 
 export async function deletePhoto(publicUrl: string): Promise<boolean> {
   const url = new URL(publicUrl)
-  const path = url.pathname.split('/').slice(4).join('/')
+  const path = url.pathname.split('/').slice(6).join('/')
 
   const { error } = await supabase.storage
     .from(GALLERY_BUCKET)

@@ -272,3 +272,15 @@ src/
 - **Vercel deploy:** Múltiplos deploys em `https://appbarber-rose.vercel.app` (8 deploys)
 - **Git:** `7875832..208babd` — push para `origin main`
 - **⚠️ PENDENTE:** Upload de fotos no Storage não funciona — bucket `gallery` foi criado + políticas RLS adicionadas, mas upload ainda falha (verificar `ensureGalleryBucket()` e permissões Storage no Supabase Dashboard)
+
+### Sessão 15 — Correção Upload de Imagens + Botão Salvar Horários (2026-07-10)
+- **Problema 1:** Upload de fotos (hero/galeria) não funcionava por 3 causas:
+  - `ensureGalleryBucket()` tentava criar bucket via client-side (`createBucket` requer `service_role`) — sempre falhava
+  - Upload bloqueado para admin sem loja: guardas usavam `!shop` (sempre null para admin) em vez de `!targetShopId`
+  - `deletePhoto()` usava `slice(4)` no path → produzia `public/gallery/shop-id/file.jpg` em vez de `shop-id/file.jpg`
+  - `uploadGalleryPhoto()` sem `{ upsert: true }` (hero e logo já tinham)
+- **Problema 2:** Botão "Salvar configurações do site" nunca habilitava para admin sem loja (`disabled={savingSite || !shop}` com `shop=null`)
+- **`src/lib/storage.ts`:** `ensureGalleryBucket` removido `createBucket` → só verifica existência; `deletePhoto` corrigido `slice(4)` → `slice(6)`; `uploadGalleryPhoto` adicionado `{ upsert: true }`
+- **`src/pages/WhatsAppSettings.tsx`:** Uploads usam `targetShopId` em vez de `shop.id`; guardas `!shop` → `!targetShopId`; botão salvar e link público usam `sitePublicSlug` (carregado do banco via `public_slug`)
+- **build:** `npm run build` validado com sucesso (v1.07s)
+
