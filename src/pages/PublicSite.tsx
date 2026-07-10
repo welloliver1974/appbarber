@@ -398,7 +398,13 @@ function PublicSite() {
       else toast.warning('Agendamento criado! Notificação de WhatsApp pendente.')
       setSuccess(true)
     } catch (submitError) {
-      setError(submitError instanceof Error ? submitError.message : 'Não foi possível concluir o agendamento')
+      console.error('[Booking] submitError:', submitError)
+      const msg = submitError instanceof Error
+        ? submitError.message
+        : typeof submitError === 'object' && submitError !== null
+          ? (submitError as any).message || (submitError as any).error || (submitError as any).description || JSON.stringify(submitError)
+          : String(submitError)
+      setError(msg)
     } finally { setSaving(false) }
   }
 

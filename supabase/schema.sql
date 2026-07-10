@@ -365,7 +365,7 @@ BEGIN
         'start_time', NEW.start_time,
         'status', NEW.status
       )
-    )::text,
+    ),
     headers := '{"Content-Type": "application/json"}'::jsonb
   );
   RETURN NEW;

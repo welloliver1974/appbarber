@@ -250,3 +250,20 @@ src/
 - **Vercel deploy**: Múltiplos deploys em `https://appbarber-rose.vercel.app`
 - **Edge Function deploy**: `create-auth-user` deployada via `supabase functions deploy`
 - **⚠️ PENDENTE:** Executar `supabase/fix_rpc_only.sql` no Supabase SQL Editor (RPC functions + coluna `auth_email`)
+
+### Sessão 14 — Correção RLS, Booking Público e Dashboard (2026-07-09)
+- **Diagnóstico:** Erro `404 (Not Found)` ao inserir em `appointments` — na verdade era RLS bloqueando INSERT (42501), exibido como 404 pelo browser
+- **Problema real 1:** `net.http_post` no trigger `trg_notify_appointment` chamava `body := jsonb::text`, mas `pg_net v0.20.3` espera `jsonb` — causava erro `function net.http_post(url => unknown, body => text, headers => jsonb) does not exist`
+- **Problema real 2:** RLS `can_view_shop()` só permitia anon para a **primeira loja** (`public_booking_shop_id()`), bloqueando qualquer acesso público a lojas secundárias
+- **Correções no Supabase (SQL executado via `supabase db query --linked`):**
+  - `can_view_shop()` alterado para retornar `true` para `auth.role() = 'anon'` em qualquer loja
+  - Políticas INSERT de `clients` e `appointments` atualizadas para permitir anon em qualquer loja
+  - Políticas SELECT de `clients` e `appointments` atualizadas para permitir anon (necessário para `.select()` pós-INSERT e `getAvailableSlots()`)
+  - Trigger `notify_appointment_webhook` recriado com `body` como `jsonb` (sem `::text`)
+  - Schema do PostgREST recarregado via `NOTIFY pgrst, 'reload schema'`
+- **`src/pages/PublicSite.tsx`:** Catch do `handleSubmit` melhorado — mostra `String(submitError)` ou `submitError.message` em vez de fallback genérico; agora exibe erros reais do Supabase
+- **`src/pages/Dashboard.tsx`:** Substituído `Intl.DateTimeFormat('pt-BR', { weekday: 'short' })` e `toLocaleDateString('pt-BR')` por mapa fixo `WEEKDAY_LABELS` para evitar nomes de dias em inglês; seletor de barbeiro corrigido (usava `value="all"` que o `@base-ui/react/select` exibia como texto "all" em vez do placeholder)
+- **`supabase/schema.sql`:** Trigger `notify_appointment_webhook` corrigido (removeu `::text` do body)
+- **`supabase/migrations/20260709230000_fix_public_rls_all_shops.sql`:** **CRIADO** — migration com correções RLS
+- **Vercel deploy:** Múltiplos deploys em `https://appbarber-rose.vercel.app` (6 deploys)
+- **Git:** Commits pendentes — push para `origin main`

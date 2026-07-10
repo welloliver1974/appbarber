@@ -18,6 +18,8 @@ import { AlertCircle, Calendar, CheckCircle2, ChevronLeft, ChevronRight, Clock, 
 import { useAuth } from '@/providers/AuthProvider'
 import type { Barber } from '@/types/database'
 
+const WEEKDAY_LABELS = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb']
+
 interface DashboardCounts {
   barbers: number
   services: number
@@ -140,12 +142,10 @@ function formatDateISO(d: Date) {
 }
 
 function formatDateBR(d: Date) {
-  return new Intl.DateTimeFormat('pt-BR', {
-    timeZone: 'America/Sao_Paulo',
-    weekday: 'short',
-    day: 'numeric',
-    month: 'numeric',
-  }).format(d)
+  const day = d.getDate().toString().padStart(2, '0')
+  const month = (d.getMonth() + 1).toString().padStart(2, '0')
+  const wd = WEEKDAY_LABELS[d.getDay()]
+  return `${wd}, ${day}/${month}`
 }
 
 function Dashboard() {
@@ -161,7 +161,7 @@ function Dashboard() {
   const [barberLoad, setBarberLoad] = useState<BarberLoad[]>([])
   const [barbers, setBarbers] = useState<Barber[]>([])
   const [schedule, setSchedule] = useState<ScheduleAppt[]>([])
-  const [selectedBarber, setSelectedBarber] = useState('all')
+  const [selectedBarber, setSelectedBarber] = useState('')
   const [weekStart, setWeekStart] = useState(() => getUTC3WeekStart())
 
   const weekDays = getWeekDays(weekStart)
@@ -364,7 +364,7 @@ function Dashboard() {
     loadSchedule()
   }, [weekStart, shop?.id, shopLoading])
 
-  const filtered = selectedBarber === 'all'
+  const filtered = !selectedBarber
     ? schedule
     : schedule.filter((a) => a.barber_id === selectedBarber)
 
@@ -605,10 +605,10 @@ function Dashboard() {
               <h2 className="text-lg font-bold">Agenda Semanal</h2>
             </div>
             <div className="flex items-center gap-2">
-              <Select value={selectedBarber} onValueChange={(v) => v && setSelectedBarber(v)}>
-                <SelectTrigger className="w-36 border-indigo-500/20 sm:w-44"><SelectValue placeholder="Todos" /></SelectTrigger>
+              <Select value={selectedBarber} onValueChange={(v) => setSelectedBarber(v ?? '')}>
+                <SelectTrigger className="w-36 border-indigo-500/20 sm:w-44"><SelectValue placeholder="Todos os barbeiros" /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Todos os barbeiros</SelectItem>
+                  <SelectItem value="">Todos os barbeiros</SelectItem>
                   {barbers.map((b) => (
                     <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
                   ))}
@@ -643,7 +643,7 @@ function Dashboard() {
                     <div className={`border-b border-indigo-500/10 p-2 text-center text-xs font-medium ${isToday ? 'text-indigo-600 dark:text-indigo-400' : 'text-muted-foreground'}`}>
                       <span className="hidden sm:inline">{formatDateBR(day)}</span>
                       <span className="sm:hidden">
-                        {day.toLocaleDateString('pt-BR', { weekday: 'short' })}
+                        {WEEKDAY_LABELS[day.getDay()]}
                       </span>
                     </div>
                     <div className="relative" style={{ height: `${HOURS.length * 60}px` }}>
