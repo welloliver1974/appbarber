@@ -47,7 +47,9 @@
 6. Supabase client singleton via contexto
 7. Auth state gerenciado via provider
 8. **Admin identificado por email** (`welloliver@gmail.com`) em `AuthProvider.tsx`
-9. **Clientes** não veem Admin nem Configurações na sidebar
+9. **Clientes** só veem Dashboard, Barbeiros, Serviços, Clientes, Agendamentos, Relatórios
+10. **Admin sem loja** só vê Admin, WhatsApp na sidebar
+11. **Admin com loja** vê tudo (base + Admin, Configurações, WhatsApp, Site Público)
 
 ## Estrutura
 ```
@@ -92,20 +94,36 @@ src/
 
 ## Fluxo de Usuários
 
+### Login
+- **Dois modos** com toggle no rodapé do card:
+  - **Barbearia** (padrão): digita nome da barbearia + senha → sistema busca `auth_email` via RPC `lookup_shop_auth_email` → faz login no Supabase Auth com email + senha
+  - **Admin**: digita email + senha (login direto no Supabase Auth, sem lookup)
+- **Sem cadastro**: só admin cria contas (via Supabase dashboard ou Edge Function)
+
 ### Admin (welloliver@gmail.com)
-1. Login → `resolveActiveShop` retorna null (admin não tem shop) → AppLayout detecta `isAdmin && !shop` → redireciona para `/admin`
-2. Sidebar: Dashboard, Barbeiros, Serviços, Clientes, Agendamentos, WhatsApp, Relatórios, Admin, Configurações
-3. Em `/admin`: vê todas as lojas, cria novas (nome + UUID do dono), exclui
+1. Login → `resolveActiveShop` retorna null (admin não tem shop)
+2. Guard do AppLayout detecta `isAdmin && !shop` → permite `/admin`, `/whatsapp`, `/settings`
+3. Sidebar (sem loja): Admin, WhatsApp
+4. Sidebar (com loja): Dashboard, Barbeiros, Serviços, Clientes, Agendamentos, WhatsApp, Relatórios, Admin, Configurações
+5. Em `/admin`: vê todas as lojas, cria novas (nome + senha), edita, exclui
+6. Em `/whatsapp` (sem loja): dropdown pra selecionar qual loja configurar
 
 ### Cliente (dono de barbearia)
-1. Login → `resolveActiveShop` busca por `owner_user_id`
-2. Se achar shop → app normal
-3. Se não achar → onboarding (`ShopSetup`) com formulário "Criar Barbearia"
-4. Sidebar: Dashboard, Barbeiros, Serviços, Clientes, Agendamentos, WhatsApp, Relatórios (sem Admin, sem Config)
+1. Login (nome da barbearia + senha) → Supabase Auth valida
+2. `resolveActiveShop` busca por `owner_user_id` do usuário autenticado
+3. Sidebar: Dashboard, Barbeiros, Serviços, Clientes, Agendamentos, Relatórios
+4. Se não achar loja → tela "Sua barbearia ainda não foi criada. Contate o administrador." (com opção de sair ou tentar novamente)
 
-### Criação de barbearia
-- **Pelo admin**: Supabase Auth → cria usuário → copia UUID → `/admin` → Nova Barbearia → cola UUID
-- **Pelo cliente**: Login → onboarding → digita nome → INSERT com `owner_user_id = auth.uid()`
+### Criação de barbearia (pelo admin)
+1. Admin em `/admin` → Nova Barbearia
+2. Digita **nome da barbearia** + **senha de acesso**
+3. Sistema gera `auth_email` (ex: `shop-studio-lima-abc123@appbarber.app`)
+4. Chama Edge Function `create-auth-user` (cria usuário no Supabase Auth com service_role)
+5. Chama RPC `admin_create_shop` (cria loja com `owner_user_id` + `auth_email`)
+6. Pronto. Barbeiro loga com nome da barbearia + senha
+
+## Pendências (precisa executar manualmente)
+- Rodar `supabase/fix_rpc_only.sql` no Supabase SQL Editor (adiciona coluna `auth_email`, RPC `lookup_shop_auth_email`, RPCs de admin com security definer, policy `is_admin`)
 
 ## Histórico de Alterações
 
@@ -210,3 +228,20 @@ src/
 - **fix:** Correção do erro 403 (RLS) que impedia cadastro/edição de barbearia + admin sem loja ser redirecionado corretamente
 - **build:** `npm run build` validado com sucesso
 - **Commits:** `7569d63`, `75a63c5`
+
+### Sessão 13 — Login por Nome + Edge Function Auth + Sidebar Admin/Cliente (2026-07-09)
+- **`src/pages/Login.tsx`**: **REESCRITO** — login com nome da barbearia + senha (padrão) OU email + senha (admin, toggle no rodapé). Remove cadastro público. Usa RPC `lookup_shop_auth_email` pra buscar email interno pelo nome da loja
+- **`src/components/AppLayout.tsx`**: Guarda `!shop && !isAdmin` agora mostra `NoShopPage` (mensagem "contate o administrador") em vez de `ShopSetup`. Guarda admin sem loja permite `/admin`, `/whatsapp`, `/settings`. Nav items: `baseNavItems` (só Dashboard, Barbeiros, Serviços, Clientes, Agendamentos, Relatórios) sem WhatsApp nem Site Público. `adminNavItems` (Admin, WhatsApp). `settingsNavItem` incluso só se admin tem loja. WhatsApp badge só pra admin. Sidebar fixa em desktop com `overflow-y-auto` na nav e `lg:ml-64` no conteúdo
+- **`src/pages/AdminPage.tsx`**: **REESCRITO** — criação de barbearia agora com campo **senha**. Gera `auth_email` automaticamente. Chama Edge Function `create-auth-user` (cria usuário no Supabase Auth com `service_role`), depois RPC `admin_create_shop` com o UUID retornado. Não precisa mais copiar UUID manualmente. Banner amarelo se RPCs não existirem
+- **`src/pages/WhatsAppSettings.tsx`**: Adicionado suporte pra admin sem loja: carrega lista de lojas via RPC `admin_get_all_shops` e mostra dropdown pra selecionar qual configurar. Toda lógica de load/save usa `targetShopId` em vez de `shop.id`
+- **`src/pages/ShopSettings.tsx`**: Admin sem loja agora redireciona pra `/admin` (em vez de spinner infinito)
+- **`src/lib/supabase.ts`**: Exporta `supabaseUrl` para uso no AdminPage
+- **`src/types/database.ts`**: Adicionado campo `auth_email` na interface `Shop`
+- **`supabase/functions/create-auth-user/index.ts`**: **CRIADO** — Edge Function que cria usuário no Supabase Auth com `service_role` (admin.createUser). Aceita `{ email, password }`, retorna `{ user_id }`. Com CORS headers
+- **`supabase/fix_rpc_only.sql`**: **REESCRITO** — Adiciona: coluna `auth_email` em shops, RPC `lookup_shop_auth_email`, RPC `admin_create_shop` com parâmetro `auth_email`, RPC `is_admin()` + policy SELECT, instruções completas
+- **`supabase/config.toml`**: Adicionado `[functions.create-auth-user]` com `verify_jwt = false`
+- **Edge Function deploy**: `npx supabase functions deploy create-auth-user --project-ref chtjqqtvvlamrdesaiwp`
+- **Vercel deploy**: Múltiplos deploys em `https://appbarber-rose.vercel.app`
+- **Git**: Commits `585ff2f` até `a8a003b` (8 commits), push para `origin main`
+- **build:** `npm run build` validado após cada alteração
+- **⚠️ PENDENTE:** Executar `supabase/fix_rpc_only.sql` no Supabase SQL Editor (RPC functions + coluna `auth_email`)
