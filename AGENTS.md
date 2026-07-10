@@ -283,5 +283,7 @@ src/
 - **`src/lib/storage.ts`:** `ensureGalleryBucket` removido `createBucket` → só verifica existência; `deletePhoto` corrigido `slice(4)` → `slice(6)`; `uploadGalleryPhoto` adicionado `{ upsert: true }`
 - **`src/pages/WhatsAppSettings.tsx`:** Uploads usam `targetShopId` em vez de `shop.id`; guardas `!shop` → `!targetShopId`; botão salvar e link público usam `sitePublicSlug` (carregado do banco via `public_slug`)
 - **2ª correção (upload ainda falhava):** Bucket `gallery` nunca existia no Supabase — removido `ensureGalleryBucket` com verificação falha, agora função vazia retorna `true` sempre; criada migration `20260710150000_create_gallery_storage.sql` que cria bucket + RLS policies via SQL direto
-- **build:** `npm run build` validado com sucesso (v1.03s)
+- **3ª correção (working_hours não aparecia no site público):** Política RLS de UPDATE em `shops` não incluía `public.is_admin()`. Save retornava sucesso mas 0 linhas afetadas. Criada migration `20260710160000_fix_admin_rls_update.sql` que adiciona `is_admin()` nas policies de shops e whatsapp_configs + tabela admins + função is_admin. Frontend: `.select('id')` nas chamadas update para detectar updates sem efeito
+- **build:** `npm run build` validado com sucesso (v905ms)
+
 

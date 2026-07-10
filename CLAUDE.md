@@ -35,9 +35,12 @@ All code fully written, validated with `npm run build`, and pushed to GitHub (`o
 - **`src/pages/PublicSite.tsx`**: Botão "Voltar ao início" na tela de sucesso
 - **`supabase/storage_rls.sql`**: Políticas Storage para bucket gallery
 
-### Completed in Session 15 — Fix Upload + Save Working Hours (2026-07-10)
+### Completed in Session 15 — Fix Upload + Save Working Hours + RLS Admin (2026-07-10)
 - **`src/lib/storage.ts`**: `ensureGalleryBucket` removido `createBucket` (requer `service_role`) → só verifica existência; `deletePhoto` corrigido `slice(4)` → `slice(6)`; `uploadGalleryPhoto` adicionado `{ upsert: true }`
 - **`src/pages/WhatsAppSettings.tsx`**: Uploads usam `targetShopId` (não `shop.id`); guardas `!shop` → `!targetShopId`; botão salvar horários e link público usam `sitePublicSlug` do banco
+- **`supabase/migrations/20260710150000_create_gallery_storage.sql`**: Cria bucket `gallery` + RLS policies via SQL
+- **`supabase/migrations/20260710160000_fix_admin_rls_update.sql`**: Adiciona `public.is_admin()` nas policies de `shops` e `whatsapp_configs` (SELECT/UPDATE/INSERT/DELETE). Cria `admins` table + `is_admin()` function. **Necessário executar no Cloud.**
+- **Frontend**: `.select('id')` adicionado nas chamadas `.update()` para detectar updates sem efeito (RLS bloqueando)
 
 ---
 
@@ -99,14 +102,15 @@ Se não: pedir para executar no Supabase Dashboard → SQL Editor.
 - `reengage`: precisa rodar `npx supabase functions deploy reengage --project-ref chtjqqtvvlamrdesaiwp`
 
 ### STEP 3: Bugs Conhecidos (corrigir em ordem)
-1. **[CRITICAL] `src/lib/availability.ts:45-46`** — `new Date(dateStr + 'T00:00:00')` usa timezone local do browser, não UTC-3. Quebra disponibilidade para usuários fora do fuso -03.
-2. **[CRITICAL] `src/lib/evolution.ts:9-18`** — `getConfig()` retorna primeira config ativa ignorando shop_id. Todas as lojas compartilham mesma instância WhatsApp.
-3. **[HIGH] `src/pages/Appointments.tsx:121`** — `clientIds` vazio crasha Supabase (`.in('id', [])`).
-4. **[HIGH] `src/pages/Booking.tsx:96,148`** — Buffer minutes ignorados na verificação de disponibilidade.
-5. **[HIGH] `src/pages/Appointments.tsx:73`** — Buffer minutes ignorados na verificação de disponibilidade.
-6. **[MEDIUM] `src/pages/AdminPage.tsx`** — RPCs `admin_update_shop`/`admin_delete_shop` podem não existir no banco.
-7. **[MEDIUM] `src/pages/PublicSite.tsx:232`** — `serviceIds` array no deps causa re-fetch infinito.
-8. **[MEDIUM] `src/pages/PublicSite.tsx`** — Classes Tailwind inválidas `text-neutral-450`.
+1. **[CRITICAL] RLS: UPDATE policies sem `is_admin()`** — Migration `20260710160000_fix_admin_rls_update.sql` precisa ser executada. Sem ela, admin não consegue salvar working_hours, whatsapp_config, nem qualquer UPDATE via REST API. O Supabase retorna sucesso (0 linhas) sem erro. ✅ _migration criada, falta executar no Cloud_
+2. **[CRITICAL] `src/lib/availability.ts:45-46`** — `new Date(dateStr + 'T00:00:00')` usa timezone local do browser, não UTC-3. Quebra disponibilidade para usuários fora do fuso -03.
+3. **[CRITICAL] `src/lib/evolution.ts:9-18`** — `getConfig()` retorna primeira config ativa ignorando shop_id. Todas as lojas compartilham mesma instância WhatsApp.
+4. **[HIGH] `src/pages/Appointments.tsx:121`** — `clientIds` vazio crasha Supabase (`.in('id', [])`).
+5. **[HIGH] `src/pages/Booking.tsx:96,148`** — Buffer minutes ignorados na verificação de disponibilidade.
+6. **[HIGH] `src/pages/Appointments.tsx:73`** — Buffer minutes ignorados na verificação de disponibilidade.
+7. **[MEDIUM] `src/pages/AdminPage.tsx`** — RPCs `admin_update_shop`/`admin_delete_shop` podem não existir no banco.
+8. **[MEDIUM] `src/pages/PublicSite.tsx:232`** — `serviceIds` array no deps causa re-fetch infinito.
+9. **[MEDIUM] `src/pages/PublicSite.tsx`** — Classes Tailwind inválidas `text-neutral-450`.
 
 ### STEP 4: Phase 3 — Novas Features (só após bugs críticos resolvidos)
 1. **[FEAT-4] Multi-serviço no Admin**: `Appointments.tsx` + `Booking.tsx` — múltiplos serviços por agendamento

@@ -131,10 +131,20 @@ function WhatsAppSettings() {
       reengage_interval_days: parseInt(reengageIntervalDays, 10) || 22,
     }
 
+    let opError = null
     if (config) {
-      await supabase.from('whatsapp_configs').update(payload).eq('id', config.id)
+      const { data: upd, error } = await supabase.from('whatsapp_configs').update(payload).eq('id', config.id).select('id')
+      if (upd && upd.length === 0) opError = { message: 'Sem permissão para alterar. Contate o administrador.' }
+      else opError = error
     } else {
-      await supabase.from('whatsapp_configs').insert(payload)
+      const { error } = await supabase.from('whatsapp_configs').insert(payload)
+      opError = error
+    }
+
+    if (opError) {
+      toast.error('Erro ao salvar: ' + opError.message)
+      setSaving(false)
+      return
     }
 
     await load()
@@ -190,7 +200,7 @@ function WhatsAppSettings() {
       }
     }
 
-    const { error } = await supabase
+    const { data: updated, error } = await supabase
       .from('shops')
       .update({
         instagram: siteInstagram.trim() || null,
@@ -199,9 +209,12 @@ function WhatsAppSettings() {
         working_hours: Object.keys(workingHours).length > 0 ? workingHours : null,
       })
       .eq('id', targetShopId)
+      .select('id')
 
     if (error) {
-      toast.error('Erro ao salvar configurações do site')
+      toast.error('Erro ao salvar configurações do site: ' + error.message)
+    } else if (!updated || updated.length === 0) {
+      toast.error('Sem permissão para alterar esta barbearia. Contate o administrador.')
     } else {
       toast.success('Configurações do site salvas!')
     }
