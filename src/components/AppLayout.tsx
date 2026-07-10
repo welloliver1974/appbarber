@@ -104,7 +104,7 @@ function AppLayout() {
       )}
 
       {/* Sidebar */}
-      <aside className={`fixed inset-y-0 left-0 z-50 flex w-64 flex-col bg-gradient-to-b from-indigo-950 via-indigo-950 to-indigo-900 p-4 text-white transition-transform duration-200 lg:static lg:translate-x-0 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+      <aside className={`fixed inset-y-0 left-0 z-50 flex w-64 flex-col bg-gradient-to-b from-indigo-950 via-indigo-950 to-indigo-900 p-4 text-white transition-transform duration-200 lg:translate-x-0 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
         <div className="mb-8 flex flex-col items-center">
           <div className="mb-3 flex size-14 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-500 to-blue-600 shadow-lg shadow-indigo-500/30">
             <Scissors className="size-7 text-white" />
@@ -174,7 +174,7 @@ function AppLayout() {
       </aside>
 
       {/* Main Content */}
-      <div className="flex flex-1 flex-col">
+      <div className="flex flex-1 flex-col lg:ml-64">
         {/* Mobile Top Bar */}
         <header className="flex items-center justify-between bg-gradient-to-r from-indigo-950 to-indigo-900 px-4 py-3 text-white lg:hidden">
           <Button variant="ghost" size="icon" onClick={() => setSidebarOpen(true)} className="text-indigo-200 hover:text-white">
