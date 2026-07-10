@@ -1149,29 +1149,31 @@ function PublicSite() {
         <ScrollRevealSection>
           <SectionHeading overline="Informações" title="Contato & Localização" />
           <div className="grid gap-6 md:grid-cols-2">
-            <div className="rounded-2xl border border-white/[0.05] bg-neutral-900/30 p-6 backdrop-blur-md space-y-6">
-              {shop.address ? (
-                <InfoBlock icon={<MapPin className="size-5 text-amber-500" />} label="Endereço Completo" value={shop.address} />
-              ) : null}
-              {shop.phone ? (
-                <InfoBlock icon={<Phone className="size-5 text-amber-500" />} label="WhatsApp de Contato" value={formatPhoneInput(shop.phone)} />
-              ) : null}
-              {instagramLink ? (
-                <InfoBlockWithLink icon={<AtSign className="size-5 text-amber-500" />} label="Instagram Oficial" href={instagramLink}>
-                  @{shop.instagram?.replace(/^@/, '')}
-                </InfoBlockWithLink>
-              ) : null}
-              {shop.address ? (
-                <Button
-                  variant="outline"
-                  className="border-white/[0.08] text-white hover:bg-white/5 w-full mt-2 rounded-xl"
-                  onClick={() => window.open(`https://maps.google.com/?q=${encodeURIComponent(shop.address ?? '')}`, '_blank')}
-                >
-                  <MapPin className="mr-2 size-4 text-amber-500" />
-                  Como Chegar (Google Maps)
-                </Button>
-              ) : null}
-            </div>
+            {shop.address || shop.phone || instagramLink ? (
+              <div className="rounded-2xl border border-white/[0.05] bg-neutral-900/30 p-6 backdrop-blur-md space-y-6">
+                {shop.address ? (
+                  <InfoBlock icon={<MapPin className="size-5 text-amber-500" />} label="Endereço Completo" value={shop.address} />
+                ) : null}
+                {shop.phone ? (
+                  <InfoBlock icon={<Phone className="size-5 text-amber-500" />} label="WhatsApp de Contato" value={formatPhoneInput(shop.phone)} />
+                ) : null}
+                {instagramLink ? (
+                  <InfoBlockWithLink icon={<AtSign className="size-5 text-amber-500" />} label="Instagram Oficial" href={instagramLink}>
+                    @{shop.instagram?.replace(/^@/, '')}
+                  </InfoBlockWithLink>
+                ) : null}
+                {shop.address ? (
+                  <Button
+                    variant="outline"
+                    className="border-white/[0.08] text-white hover:bg-white/5 w-full mt-2 rounded-xl"
+                    onClick={() => window.open(`https://maps.google.com/?q=${encodeURIComponent(shop.address ?? '')}`, '_blank')}
+                  >
+                    <MapPin className="mr-2 size-4 text-amber-500" />
+                    Como Chegar (Google Maps)
+                  </Button>
+                ) : null}
+              </div>
+            ) : null}
 
             <div className="rounded-2xl border border-white/[0.05] bg-neutral-900/30 p-6 backdrop-blur-md">
               <p className="mb-5 text-xs font-semibold uppercase tracking-wider text-amber-500">Horário de Atendimento</p>
