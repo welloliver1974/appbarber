@@ -5,8 +5,9 @@ import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import PageTransition from '@/components/PageTransition'
-import { ShieldCheck, Store, Plus, Loader2, Copy, Check, Settings, Save, Trash2, Terminal, Lock } from 'lucide-react'
+import { ShieldCheck, Store, Plus, Loader2, Copy, Check, Settings, Save, Trash2, Terminal, Lock, Globe } from 'lucide-react'
 import { toast } from 'sonner'
+import { buildPublicSiteUrl } from '@/lib/site'
 
 interface ShopRow {
   id: string
@@ -305,6 +306,20 @@ function AdminPage() {
                     <span className="text-muted-foreground">Slug</span>
                     <span className="text-xs">{shop.public_slug ?? '—'}</span>
                   </div>
+                  {shop.public_slug && (
+                    <button
+                      className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-indigo-600/10 to-blue-600/10 px-3 py-2 text-xs font-medium text-indigo-500 transition hover:from-indigo-600/20 hover:to-blue-600/20"
+                      onClick={() => window.open(buildPublicSiteUrl(shop.public_slug), '_blank')}
+                    >
+                      <Globe className="size-3.5" />
+                      Abrir site público
+                    </button>
+                  )}
+                  {!shop.public_slug && (
+                    <p className="text-center text-xs text-muted-foreground">
+                      Site será disponibilizado após criar a loja
+                    </p>
+                  )}
                   {shop.instagram && (
                     <div className="flex items-center justify-between rounded-lg bg-indigo-500/5 px-3 py-2">
                       <span className="text-muted-foreground">Instagram</span>
