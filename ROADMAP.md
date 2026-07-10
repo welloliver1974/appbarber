@@ -92,6 +92,12 @@ Estas ações são **manuais** e desbloquearão os bugs ativos em produção.
   npx supabase functions deploy reengage --project-ref chtjqqtvvlamrdesaiwp
   ```
 
+- [x] **[SQL-D]** Rodar migration `20260710150000_create_gallery_storage.sql` ✅ _2026-07-10_
+  > Executado diretamente no Supabase SQL Editor. Cria bucket `gallery` + policy `Gallery All`.
+
+- [x] **[SQL-E]** Rodar migration `20260710160000_fix_admin_rls_update.sql` (parcial) ✅ _2026-07-10_
+  > Policies UPDATE de `shops` e `whatsapp_configs` alteradas diretamente no Cloud para incluir `public.is_admin()`.
+
 - [x] **[GIT]** Push para Vercel (auto-deploy) ✅ _2026-07-09_
   ```bash
   git push origin main
@@ -101,6 +107,12 @@ Estas ações são **manuais** e desbloquearão os bugs ativos em produção.
 ---
 
 ## 🔴 FASE 1 — Bugs Críticos
+
+### [BUG-0] RLS: UPDATE policies sem `is_admin()` ✅ _corrigido em 2026-07-10_
+- **Problema**: Admin não conseguia salvar working_hours, whatsapp_config, nem fazer UPDATE em shops via REST API (retornava 0 linhas sem erro)
+- [x] Policies corrigidas via SQL direto no Cloud
+- [x] `src/pages/WhatsAppSettings.tsx` atualizado com `.select('id')` para detectar updates sem efeito
+- [x] `src/pages/AdminPage.tsx` corrigido para funcionar sem RPCs
 
 ### [BUG-1] Link de cancelamento no WhatsApp ✅ _código concluído em 2026-07-09_
 - **Arquivo**: `supabase/functions/notify-appointment/index.ts`

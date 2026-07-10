@@ -119,6 +119,18 @@ Se não: pedir para executar no Supabase Dashboard → SQL Editor.
 
 ---
 
+### Completed in Session 15 — Upload de Fotos + RLS + Admin Sem Loja (2026-07-10)
+- **Problem**: Upload hero/gallery photos didn't work for admin; RLS policies blocked admin writes to `shops`/`whatsapp_configs`; gallery bucket didn't exist; storage RLS blocked authenticated
+- **Fixes (5 rounds)**:
+  1. `src/lib/storage.ts`: simplified `ensureGalleryBucket` (no-op); fixed `deletePhoto` slice; added `upsert: true` to `uploadGalleryPhoto`; uploads throw real errors
+  2. `src/pages/WhatsAppSettings.tsx`: guards from `!shop` → `!targetShopId`; save uses `targetShopId`; `.select('id')` chained to detect zero-affected-row updates
+  3. Created migration `20260710150000_create_gallery_storage.sql` (bucket + single permissive `Gallery All` policy)
+  4. Created migration `20260710160000_fix_admin_rls_update.sql` (added `is_admin()` to SELECT/UPDATE/INSERT/DELETE policies on shops + whatsapp_configs)
+  5. `src/pages/PublicSite.tsx`: left contact card hidden if empty
+  6. `src/pages/AdminPage.tsx`: RLS fix applied — admin can now update/delete shops
+- **SQL directly executed on Supabase Cloud**: UPDATE policies patched with `is_admin()`; storage policies replaced with `Gallery All` single policy
+- **Build**: ✅ `npm run build` passes
+
 ## 🚨 Admin sem loja — Padrão `targetShopId`
 
 Quando o admin está em páginas que manipulam dados de uma loja (WhatsApp, Configurações), **NUNCA use `shop`** — admin não tem loja.
