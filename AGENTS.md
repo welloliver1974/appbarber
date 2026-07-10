@@ -284,7 +284,7 @@ src/
 - **`src/pages/WhatsAppSettings.tsx`:** Uploads usam `targetShopId` em vez de `shop.id`; guardas `!shop` → `!targetShopId`; botão salvar e link público usam `sitePublicSlug` (carregado do banco via `public_slug`)
 - **2ª correção (upload ainda falhava):** Bucket `gallery` nunca existia no Supabase — removido `ensureGalleryBucket` com verificação falha, agora função vazia retorna `true` sempre; criada migration `20260710150000_create_gallery_storage.sql` que cria bucket + RLS policies via SQL direto
 - **3ª correção (working_hours não aparecia no site público):** Política RLS de UPDATE em `shops` não incluía `public.is_admin()`. Save retornava sucesso mas 0 linhas afetadas. Criada migration `20260710160000_fix_admin_rls_update.sql` que adiciona `is_admin()` nas policies de shops e whatsapp_configs + tabela admins + função is_admin. Frontend: `.select('id')` nas chamadas update para detectar updates sem efeito
-- **4ª correção (upload ainda falhava mesmo com bucket existente):** Storage RLS policies só permitiam `anon`, mas admin logado é `authenticated`. Adicionadas policies `Gallery Auth Insert/Update/Delete` via SQL direto no Supabase
+- **4ª correção (upload ainda falhava mesmo com bucket existente):** Storage RLS policies só permitiam `anon`, mas admin logado é `authenticated`. Substituídas todas por policy única `Gallery All` (FOR ALL USING bucket_id = 'gallery') que libera select/insert/update/delete sem filtrar por role
 - **5ª correção (card em branco ao lado dos horários):** Card de contato no site público não tinha verificação de conteúdo. Envolvido em `{shop.address || shop.phone || instagramLink ? ... : null}` para não renderizar vazio
 - **build:** `npm run build` validado com sucesso (v1.10s)
 
