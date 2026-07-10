@@ -265,5 +265,7 @@ src/
 - **`src/pages/Dashboard.tsx`:** Substituído `Intl.DateTimeFormat('pt-BR', { weekday: 'short' })` e `toLocaleDateString('pt-BR')` por mapa fixo `WEEKDAY_LABELS` para evitar nomes de dias em inglês; seletor de barbeiro corrigido (usava `value="all"` que o `@base-ui/react/select` exibia como texto "all" em vez do placeholder)
 - **`supabase/schema.sql`:** Trigger `notify_appointment_webhook` corrigido (removeu `::text` do body)
 - **`supabase/migrations/20260709230000_fix_public_rls_all_shops.sql`:** **CRIADO** — migration com correções RLS
-- **Vercel deploy:** Múltiplos deploys em `https://appbarber-rose.vercel.app` (6 deploys)
-- **Git:** Commits pendentes — push para `origin main`
+- **`src/pages/PublicSite.tsx`:** Adicionado botão "Voltar ao início" na tela de sucesso (ao lado de "Novo agendamento")
+- **`src/pages/Dashboard.tsx`:** Seletor de barbeiro usa `value=""` em vez de `value="all"` (Base UI exibia o valor bruto); dias da semana com mapa fixo pt-BR
+- **Vercel deploy:** Múltiplos deploys em `https://appbarber-rose.vercel.app` (7 deploys)
+- **Git:** `7875832..cf1570c` + `cf1570c..2042256` + commit extra — push para `origin main`

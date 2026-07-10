@@ -481,8 +481,11 @@ function PublicSite() {
               </div>
 
               <div className="flex flex-col gap-3 sm:flex-row sm:justify-center pt-2">
-                <Button onClick={resetForm} className="bg-amber-500 text-neutral-950 hover:bg-amber-600 font-bold transition-all px-6">
+                <Button onClick={() => { resetForm(); window.scrollTo({ top: 0, behavior: 'smooth' }) }} className="bg-amber-500 text-neutral-950 hover:bg-amber-600 font-bold transition-all px-6">
                   Novo agendamento
+                </Button>
+                <Button variant="outline" onClick={() => { resetForm(); window.scrollTo({ top: 0, behavior: 'smooth' }) }} className="border-white/[0.12] text-white hover:bg-white/5">
+                  Voltar ao início
                 </Button>
                 {whatsappLink ? (
                   <Button variant="outline" className="border-white/[0.12] text-white hover:bg-white/5" onClick={() => window.open(whatsappLink, '_blank')}>
