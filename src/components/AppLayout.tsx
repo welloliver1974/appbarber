@@ -20,9 +20,10 @@ const baseNavItems = [
 
 const adminNavItems = [
   { href: '/admin', label: 'Admin', icon: ShieldCheck },
-  { href: '/settings', label: 'Configurações', icon: Settings },
   { href: '/whatsapp', label: 'WhatsApp', icon: MessageSquare },
 ]
+
+const settingsNavItem = { href: '/settings', label: 'Configurações', icon: Settings } as const
 
 function NoShopPage({ user, signOut }: { user: import('@supabase/supabase-js').User; signOut: () => Promise<void> }) {
   return (
@@ -70,7 +71,7 @@ function AppLayout() {
   const { state: waState } = useWhatsAppStatus(shop?.id)
   const navItems = useMemo(() => {
     if (isAdmin && !shop) return adminNavItems
-    if (isAdmin) return [...baseNavItems, ...adminNavItems]
+    if (isAdmin) return [...baseNavItems, ...adminNavItems, settingsNavItem]
     return baseNavItems
   }, [isAdmin, shop])
 
