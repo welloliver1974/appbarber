@@ -19,9 +19,15 @@ All code fully written, validated with `npm run build`.
 - **Migration aplicada no Supabase Cloud** via CLI
 - **Backfill**: appointments antigos preenchidos com `services.price` atual
 
-### New State — STEP 5 tasks remaining:
-1. **[FEAT-4] Multi-serviço no Admin**: `Appointments.tsx` + `Booking.tsx`
-2. **[FEAT-6] Reagendamento em `ManageBooking`**
+### New State — STEP 5 / STEP 6 (atualizado em 2026-07-12)
+Todas as features de produto do roadmap (FEAT-4, FEAT-5, FEAT-6) já estão **IMPLEMENTADAS**:
+- **[FEAT-4] Multi-serviço no Admin**: ✅ Feito — `Booking.tsx` e `Appointments.tsx` têm `serviceIds[]`, `totalDuration`, `totalPrice` e gravam em `appointment_services`.
+- **[FEAT-5] `price_at_booking`**: ✅ Feito (Sessão 17).
+- **[FEAT-6] Reagendamento em `ManageBooking`**: ✅ Feito — `ManageBooking.tsx` tem `handleReschedule` + UI completa de reagendamento.
+
+Outros itens do roadmap STEP 6 também já concluídos: lazy loading (`App.tsx`), busca de clientes por telefone (`Clients.tsx`), push notifications (Sessão 21), download `.ics` (Sessão 25), ajuste de layout da confirmação (Sessão 26).
+
+**Pendências reais restantes** (ver `AGENTS.md`): aplicar migration `is_combo` no Cloud, adicionar `ErrorBoundary` (feito Sessão 27), Realtime no Dashboard, documentação `SETUP.md`/`CHANGELOG.md`, testes automatizados.
 
 ## Current State (Session 16 Complete — Fix 8 Bugs Técnicos)
 

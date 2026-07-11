@@ -402,6 +402,15 @@ src/
 - **Build:** ✅ `npm run build` validado (sem erros TypeScript).
 - **Commit:** `0d56a1a` – “fix: ajusta tela de confirmação do agendamento para caber todos os botões”.
 
+### Sessão 27 — Varredura de melhorias + ErrorBoundary + docs (2026-07-12)
+- **Contexto:** Varredura manual do código revelou que o roadmap em `AGENTS.md`/`CLAUDE.md` estava desatualizado — FEAT-4 (multi-serviço em `Booking.tsx`), FEAT-5 (`price_at_booking`), FEAT-6 (reagendamento em `ManageBooking.tsx`), lazy loading (`App.tsx`), e busca de clientes por telefone (`Clients.tsx`) **já estavam implementados**.
+- **`src/components/ErrorBoundary.tsx` (NOVO):** Class component que captura erros de runtime e evita tela branca no SPA inteiro. Fallback com tema índigo, botões "Tentar novamente" (reset de estado) e "Recarregar".
+- **`src/App.tsx`:** Rotas admin e site público agora envolvidas por `<ErrorBoundary>` (ambos os branches do `shouldRenderPublicSite()`).
+- **`supabase/migrations/20260711000000_add_is_combo_to_services.sql`:** Migration que cria a coluna `is_combo` (usada por `Services.tsx`) estava solta no git — foi commitada (idempotente, `IF NOT EXISTS`). ⚠️ **Ainda precisa ser aplicada no Supabase Cloud** (`supabase db push` ou SQL editor).
+- **`AGENTS.md` + `CLAUDE.md`:** Roadmap atualizado para refletir o que já está feito (FEAT-4/5/6, lazy loading, busca por telefone, .ics, ajuste de layout).
+- **Build:** ✅ `npm run build` validado.
+- **Commits:** `f083864` (migration is_combo), `ErrorBoundary` + docs em commit subsequente.
+
 ---
 
 ## 📋 Estado Atual & Próximos Passos (Resumo para IA)
@@ -419,23 +428,28 @@ src/
 - Push notifications para barbeiros (Web Push + VAPID) – Edge Function `notify-barber-push`, Service Worker, NotificationContext, hook `useBarberPush`.
 - Correções de UI/UX: Dialog scroll, checkbox Combo funcional, card faturamento responsivo.
 - Download de arquivo `.ics` (calendário) na tela de sucesso do agendamento público — compatível com Google Calendar, iPhone Calendar e Outlook.
+- `ErrorBoundary` global (`src/components/ErrorBoundary.tsx`) — um erro de runtime numa página não derruba o SPA inteiro.
+- Multi-serviço no admin (`Booking.tsx`/`Appointments.tsx`), reagendamento (`ManageBooking.tsx`), lazy loading (`App.tsx`), busca de clientes por telefone (`Clients.tsx`) — todos já implementados.
 - Build validado (`npm run build`) em todas as sessões.
 - Commits sincronizados no `origin/main`.
 
 ### ✅ Concluído (adicionado nesta atualização)
 - Deploy das variáveis de ambiente na Vercel (`VITE_ENABLE_BARBER_PUSH=true`, `VITE_VAPID_PUBLIC_KEY=...`).
 - Migrations de push aplicadas no Supabase (`20260730_create_push_subscriptions.sql`, `20260731_add_notifications_enabled_to_barbers.sql`, `20260732_add_barber_push_trigger.sql`).
+- Migration `is_combo` commitada (falta aplicar no Cloud).
 
 ### 🔧 Pendente / Bloqueado
-1. **Testes automatizados** – adicionar testes unitários/integração para:  
+1. **Aplicar migration `is_combo` no Supabase Cloud** — arquivo já commitado (`supabase/migrations/20260711000000_add_is_combo_to_services.sql`), mas a coluna precisa existir em produção ou o save de serviços com Combo falha. Rodar `supabase db push` ou colar o SQL no SQL Editor.
+2. **Realtime no Dashboard** – hoje não atualiza sozinho quando cria/cancela agendamento; Supabase Realtime seria um ganho de UX real.
+3. **Testes automatizados** – adicionar testes unitários/integração para:  
    - Criação de serviço com `is_combo`.  
    - Fluxo de push (subscribe → trigger → receive).  
    - RLS multi-tenant (admin vs cliente vs anon).  
-2. **Documentação de setup local** – criar/atualizar `SETUP.md` ou `README` com:  
+4. **Documentação de setup local** – criar/atualizar `SETUP.md` ou `README` com:  
    - Criação do bucket `gallery` e policies de Storage.  
    - Inserção das VAPID keys no Supabase Edge Function secrets.  
    - Como rodar `supabase db push` / `supabase functions deploy`.  
-3. **Changelog resumido** – opcional `CHANGELOG.md` com versões (v1.0, v1.1 …) para leitura rápida por humanos/IA.  
+5. **Changelog resumido** – opcional `CHANGELOG.md` com versões (v1.0, v1.1 …) para leitura rápida por humanos/IA.  
 
 ### 📌 Como a IA deve proceder
 - Ler este bloco para saber o que **já está pronto** (✅) e o que **falta** (🔧).  

@@ -2,6 +2,7 @@ import { lazy, Suspense, useEffect } from 'react'
 import { NotificationProvider } from '@/contexts/NotificationContext'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import AppLayout from '@/components/AppLayout'
+import ErrorBoundary from '@/components/ErrorBoundary'
 import { shouldRenderPublicSite } from '@/lib/site'
 
 const Login = lazy(() => import('@/pages/Login'))
@@ -47,34 +48,38 @@ function App() {
   }, [])
   if (shouldRenderPublicSite()) {
     return (
-      <Suspense fallback={<PublicSiteLoader />}>
-        <PublicSite />
-      </Suspense>
+      <ErrorBoundary>
+        <Suspense fallback={<PublicSiteLoader />}>
+          <PublicSite />
+        </Suspense>
+      </ErrorBoundary>
     )
   }
 
   return (
-    <BrowserRouter><NotificationProvider>
-      <Suspense fallback={<PageLoader />}>
-        <Routes>
-          <Route path="/login" element={<Login />} />
-          <Route path="/booking" element={<Booking />} />
-          <Route path="/public/:slug" element={<PublicSite />} />
-          <Route path="/public/:slug/manage" element={<ManageBooking />} />
-          <Route element={<AppLayout />}>
-            <Route path="/" element={<Dashboard />} />
-            <Route path="/barbers" element={<Barbers />} />
-            <Route path="/services" element={<Services />} />
-            <Route path="/clients" element={<Clients />} />
-            <Route path="/appointments" element={<Appointments />} />
-            <Route path="/whatsapp" element={<WhatsAppSettings />} />
-            <Route path="/reports" element={<Reports />} />
-            <Route path="/settings" element={<ShopSettings />} />
-            <Route path="/admin" element={<AdminPage />} />
-          </Route>
-        </Routes>
-      </Suspense>
-    </NotificationProvider></BrowserRouter>
+    <ErrorBoundary>
+      <BrowserRouter><NotificationProvider>
+        <Suspense fallback={<PageLoader />}>
+          <Routes>
+            <Route path="/login" element={<Login />} />
+            <Route path="/booking" element={<Booking />} />
+            <Route path="/public/:slug" element={<PublicSite />} />
+            <Route path="/public/:slug/manage" element={<ManageBooking />} />
+            <Route element={<AppLayout />}>
+              <Route path="/" element={<Dashboard />} />
+              <Route path="/barbers" element={<Barbers />} />
+              <Route path="/services" element={<Services />} />
+              <Route path="/clients" element={<Clients />} />
+              <Route path="/appointments" element={<Appointments />} />
+              <Route path="/whatsapp" element={<WhatsAppSettings />} />
+              <Route path="/reports" element={<Reports />} />
+              <Route path="/settings" element={<ShopSettings />} />
+              <Route path="/admin" element={<AdminPage />} />
+            </Route>
+          </Routes>
+        </Suspense>
+      </NotificationProvider></BrowserRouter>
+    </ErrorBoundary>
   )
 }
 
