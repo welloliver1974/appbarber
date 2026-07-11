@@ -3,8 +3,6 @@ import { supabase } from '@/lib/supabase'
 import type { Shop } from '@/types/database'
 import { buildPublicSlug } from '@/lib/site'
 
-const ADMIN_EMAILS = ['welloliver@gmail.com']
-
 export async function resolveActiveShop(user: User | null, isAdmin = false): Promise<Shop | null> {
   if (!user) return null
 
