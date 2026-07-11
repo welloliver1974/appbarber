@@ -377,3 +377,11 @@ src/
 - **Dashboard.tsx**: Removido `whitespace-nowrap` e reduzido tamanho da fonte do valor para `text-3xl sm:text-4xl` (era `text-4xl sm:text-5xl`), evitando corte do número quando o faturamento ultrapassa R$ 100,00.
 - **Build:** `npm run build` validado com sucesso.
 
+### Sessão 24 — Checkbox “Combo” funcional em Serviços (2026-07-12)
+- **Problema:** O checkbox “Combo (pacote de serviços)” aparecia apenas como texto, sem o componente visual de seleção, impedindo marcar/desmarcar.
+- **Causa:** O componente `Checkbox` em `src/components/ui/checkbox.tsx` exportava apenas `CheckboxPrimitive.Root` sem o `Indicator`, então o check não era renderizado.
+- **Correção:** Reescrevi `src/components/ui/checkbox.tsx` para exportar um wrapper que renderiza `CheckboxPrimitive.Root` com `CheckboxPrimitive.Indicator` contendo o ícone `Check` do `lucide-react`, aplicando classes de estilo consistentes (`border-indigo-500/30`, `data-[state=checked]:bg-indigo-600`).
+- **Resultado:** No formulário de criação/edição de serviços (`src/pages/Services.tsx`) o checkbox agora aparece, pode ser marcado e o campo `is_combo` é gravado corretamente no banco.
+- **Build:** `npm run build` passou sem erros.
+- **Commit:** `f04033f` – “feat: add Checkbox component and ensure combo checkbox works in Services form”.
+
