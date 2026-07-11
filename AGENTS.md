@@ -311,6 +311,14 @@ src/
 - **SQL executado:** `UPDATE shops SET owner_user_id = 'd1538bee...'` (rollback)
 - **build:** `npm run build` validado
 
+### Sessão 19 — Horários "Fechado" + Card Contato + Telefone (2026-07-10)
+- **FEAT:** WhatsAppSettings — adicionado checkbox "Fechado" por dia nos horários. Quando marcado, desabilita inputs time e salva `"fechado"` no JSONB `working_hours`
+- **FEAT:** PublicSite — badge "Barbearia Exclusiva" → "Barbearia Premium"
+- **FEAT:** PublicSite — card de contato reordenado: Endereço + Maps/Waze juntos, depois WhatsApp, depois Instagram
+- **FEAT:** PublicSite — adicionado botão Waze ao lado do Maps para navegação
+- **FIX:** PublicSite — `formatPhoneInput` comia 2 dígitos do telefone (`5511999999999` era exibido como `(55) 11999-9999` em vez de `(11) 99999-9999`). Corrigido: remove country code `55` antes de formatar
+- **build:** `npm run build` validado
+
 ### Sessão 15 — Correção Upload de Imagens + Botão Salvar Horários (2026-07-10)
 - **Problema 1:** Upload de fotos (hero/galeria) não funcionava por 3 causas:
   - `ensureGalleryBucket()` tentava criar bucket via client-side (`createBucket` requer `service_role`) — sempre falhava
