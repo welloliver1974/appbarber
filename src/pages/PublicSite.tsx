@@ -1,13 +1,14 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
-import { CheckCircle, AtSign, MapPin, Phone, Scissors, User, ChevronDown, Star, Sparkles, Clock, Calendar, ArrowLeft, ArrowRight, Check, Search } from 'lucide-react'
+import { CheckCircle, AtSign, MapPin, Phone, Scissors, User, ChevronDown, Star, Sparkles, Clock, Calendar, ArrowLeft, ArrowRight, Check, Search, CalendarPlus } from 'lucide-react'
 import { toast } from 'sonner'
 import { supabase } from '@/lib/supabase'
 import { loadPublicShopContext, resolvePublicShopSlug } from '@/lib/public-site'
 import { getAvailableSlots } from '@/lib/availability'
 import { getUTC3DateKey } from '@/lib/timezone'
 import { sendText, checkWhatsAppStatus } from '@/lib/evolution'
+import { generateICS, downloadICS, type AppointmentICSData } from '@/lib/calendar'
 import type { Barber, Service, Shop, Testimonial } from '@/types/database'
 
 function normalizePhone(value: string) {
@@ -130,6 +131,7 @@ function PublicSite() {
   const [availableSlots, setAvailableSlots] = useState<string[]>([])
   const [loadingSlots, setLoadingSlots] = useState(false)
   const [whatsAppOnline, setWhatsAppOnline] = useState<boolean | null>(null)
+  const [icsData, setIcsData] = useState<AppointmentICSData | null>(null)
 
   const toggleServiceSelection = (id: string) => {
     setServiceIds((prev) =>
@@ -318,6 +320,7 @@ function PublicSite() {
     setSuccess(false)
     setAvailableSlots([])
     setStep(1)
+    setIcsData(null)
   }
 
   function canProceed(stepNum: number) {
@@ -405,6 +408,16 @@ function PublicSite() {
       if (sent) toast.success('Confirmação enviada no seu WhatsApp!')
       else toast.warning('Agendamento criado! Notificação de WhatsApp pendente.')
       setSuccess(true)
+      // Preparar dados para o arquivo .ics
+      setIcsData({
+        shop: { name: shop.name, address: shop.address ?? undefined },
+        barberName: selectedBarber?.name || '',
+        services: selectedServices.map(s => s.name),
+        startTime: startTime, // já em UTC
+        endTime: endTime,     // já em UTC
+        totalPrice: totalPrice,
+        clientPhone: cleanPhone,
+      })
     } catch (submitError) {
       console.error('[Booking] submitError:', submitError)
       const msg = submitError instanceof Error
@@ -500,6 +513,15 @@ function PublicSite() {
                     Falar com a Barbearia
                   </Button>
                 ) : null}
+                {icsData && (
+                  <Button variant="outline" className="border-amber-500/30 text-amber-400 hover:bg-amber-500/10" onClick={() => {
+                    const ics = generateICS(icsData)
+                    downloadICS(ics, `agendamento-${Date.now()}.ics`)
+                  }}>
+                    <CalendarPlus className="mr-2 size-4" />
+                    Baixar Calendário (.ics)
+                  </Button>
+                )}
               </div>
             </CardContent>
           </Card>
