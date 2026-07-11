@@ -17,10 +17,13 @@ function normalizePhone(value: string) {
 }
 
 function formatPhoneInput(value: string) {
-  const digits = normalizePhone(value).slice(0, 11)
-  if (digits.length <= 2) return digits
-  if (digits.length <= 7) return `(${digits.slice(0, 2)}) ${digits.slice(2)}`
-  return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`
+  const digits = normalizePhone(value)
+  // strip country code 55 if present, keep DDD + number (igual ao PublicSite)
+  const local = digits.length > 11 ? digits.slice(-11) : digits
+  const d = local.slice(0, 11)
+  if (d.length <= 2) return d
+  if (d.length <= 7) return `(${d.slice(0, 2)}) ${d.slice(2)}`
+  return `(${d.slice(0, 2)}) ${d.slice(2, 7)}-${d.slice(7)}`
 }
 
 function buildISO(date: string, time: string) {
