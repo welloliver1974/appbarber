@@ -300,12 +300,15 @@ src/
 - **`src/pages/WhatsAppSettings.tsx`**: Botão "Copiar link do site" substituído por "Abrir site público" (`window.open`), removido estado `copiedLink` e ícone `Copy` não utilizado
 - **build:** `npm run build` validado
 
-### Sessão 18 — Upload de Logo + Auto-save Hero/Galeria (2026-07-10)
-- **Problema 1: owner_user_id errado.** Studio Lima tinha `owner_user_id` = `d1538bee...` mas o auth UUID de welloliver@gmail.com é `e7cdc124...`. `resolveActiveShop()` retornava `null` para o admin, e o guarda em `ShopSettings.tsx:45-47` redirecionava pro `/admin` sem mostrar a página. **Corrigido via SQL:** `UPDATE shops SET owner_user_id = 'e7cdc124-...'`
+### Sessão 18 — Upload de Logo + Auto-save Hero/Galeria + Rollback owner_user_id (2026-07-10)
+- **Problema 1: owner_user_id errado.** Studio Lima tinha `owner_user_id` = `d1538bee...` mas o auth UUID de welloliver@gmail.com é `e7cdc124...`. `resolveActiveShop()` retornava `null` para o admin. **Corrigido via SQL:** `UPDATE shops SET owner_user_id = 'e7cdc124-...'`
+- **⚠️ Rollback imediato:** Mudar o `owner_user_id` fez o admin ser tratado como dono da loja — sidebar misturou Admin + painel da barbearia. Revertido para `d1538bee...`
 - **Problema 2: handleLogoUpload sem try/catch.** `uploadLogoPhoto()` faz `throw error` mas `handleLogoUpload` não tratava exceções — erros silenciosos. **Corrigido:** adicionado try/catch + `ensureGalleryBucket()` + auto-save no banco imediatamente (remove fluxo de 2 etapas)
 - **Problema 3: Upload de hero_photo e gallery_photos só atualizava estado local.** Usuário precisava clicar "Salvar configurações do site" separadamente. Se esquecesse, a foto sumia. **Corrigido:** upload de hero e galeria agora fazem auto-save no banco + delete também persiste a remoção
-- **Arquivos alterados:** `ShopSettings.tsx`, `WhatsAppSettings.tsx`
-- **SQL executado:** `UPDATE shops SET owner_user_id` corrigindo vínculo
+- **Problema 4: Admin não conseguia acessar o ShopSettings (redirect p/ /admin).** **Corrigido:** guarda trocado para mostrar mensagem amigável com link para WhatsApp > Site Público
+- **Problema 5: Admin sem loja não tinha como fazer upload de logo.** **Corrigido:** Adicionada seção de upload de logo no WhatsAppSettings (Site Público), ao lado do hero_photo. Funciona com `targetShopId` (dropdown) — mesma mecânica do hero/galeria
+- **Arquivos alterados:** `ShopSettings.tsx`, `WhatsAppSettings.tsx`, `AGENTS.md`, `ROADMAP.md`
+- **SQL executado:** `UPDATE shops SET owner_user_id = 'd1538bee...'` (rollback)
 - **build:** `npm run build` validado
 
 ### Sessão 15 — Correção Upload de Imagens + Botão Salvar Horários (2026-07-10)

@@ -8,7 +8,7 @@ import { MessageSquare, Check, X, Loader2, Save, Zap, ShieldCheck, Wifi, AlertTr
 import { toast } from 'sonner'
 import { useAuth } from '@/providers/AuthProvider'
 import { buildPublicSiteUrl } from '@/lib/site'
-import { ensureGalleryBucket, uploadHeroPhoto, uploadGalleryPhoto, deletePhoto } from '@/lib/storage'
+import { ensureGalleryBucket, uploadHeroPhoto, uploadGalleryPhoto, uploadLogoPhoto, deletePhoto } from '@/lib/storage'
 import type { WhatsAppConfig } from '@/types/database'
 
 const DAY_CONFIG = [
@@ -41,6 +41,7 @@ function WhatsAppSettings() {
 
   const [siteInstagram, setSiteInstagram] = useState('')
   const [siteHeroPhoto, setSiteHeroPhoto] = useState('')
+  const [siteLogo, setSiteLogo] = useState('')
   const [siteGalleryPhotos, setSiteGalleryPhotos] = useState<string[]>([])
   const [siteWorkingHours, setSiteWorkingHours] = useState<Record<string, { start: string; end: string }>>({})
   const [savingSite, setSavingSite] = useState(false)
@@ -78,7 +79,7 @@ function WhatsAppSettings() {
           .maybeSingle(),
         supabase
           .from('shops')
-          .select('instagram, hero_photo, gallery_photos, working_hours, public_slug')
+          .select('instagram, hero_photo, gallery_photos, working_hours, public_slug, logo_url')
           .eq('id', targetShopId)
           .single(),
       ])
@@ -93,10 +94,11 @@ function WhatsAppSettings() {
       }
 
       if (shopRes.data) {
-        const s = shopRes.data as { instagram: string | null; hero_photo: string | null; gallery_photos: string[] | null; working_hours: Record<string, string> | null; public_slug: string | null }
+        const s = shopRes.data as { instagram: string | null; hero_photo: string | null; gallery_photos: string[] | null; working_hours: Record<string, string> | null; public_slug: string | null; logo_url: string | null }
         setSitePublicSlug(s.public_slug)
         setSiteInstagram(s.instagram ?? '')
         setSiteHeroPhoto(s.hero_photo ?? '')
+        setSiteLogo(s.logo_url ?? '')
         setSiteGalleryPhotos(Array.isArray(s.gallery_photos) ? s.gallery_photos : [])
 
         const wh: Record<string, { start: string; end: string }> = {}
@@ -205,6 +207,7 @@ function WhatsAppSettings() {
       .update({
         instagram: siteInstagram.trim() || null,
         hero_photo: siteHeroPhoto.trim() || null,
+        logo_url: siteLogo.trim() || null,
         gallery_photos: siteGalleryPhotos.filter((u) => u.trim()).length > 0 ? siteGalleryPhotos.filter((u) => u.trim()) : null,
         working_hours: Object.keys(workingHours).length > 0 ? workingHours : null,
       })
@@ -472,6 +475,66 @@ function WhatsAppSettings() {
                             .select('id')
                           if (error) throw error
                           toast.success('Hero atualizado e salvo!')
+                        } catch (err) {
+                          const msg = err instanceof Error ? err.message : String(err)
+                          toast.error('Erro no upload: ' + msg)
+                        }
+                      }}
+                    />
+                  </label>
+                </div>
+
+                {/* ── Logo ── */}
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Logo da Barbearia</label>
+                  {siteLogo ? (
+                    <div className="relative overflow-hidden rounded-xl border border-white/10">
+                      <img src={siteLogo} alt="Logo" className="h-24 w-full bg-black/30 object-contain p-2" />
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="absolute right-1 top-1 size-7 bg-black/50 text-white hover:bg-black/70"
+                        onClick={async () => {
+                          if (siteLogo.startsWith(supabase.storage.from('gallery').getPublicUrl('').data?.publicUrl ?? '')) {
+                            await deletePhoto(siteLogo)
+                          }
+                          setSiteLogo('')
+                        }}
+                      >
+                        <Trash2 className="size-3.5" />
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="mb-2 flex h-24 items-center justify-center rounded-xl border border-dashed border-white/10 bg-white/[0.02] text-sm text-white/40">
+                      Nenhum logo
+                    </div>
+                  )}
+                  <label className="flex cursor-pointer items-center justify-center gap-2 rounded-xl border border-white/[0.08] bg-white/[0.03] px-4 py-2 text-sm text-white/60 hover:bg-white/[0.06] transition">
+                    <Upload className="size-4" />
+                    {siteLogo ? 'Trocar logo' : 'Fazer upload'}
+                    <input
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp,image/svg+xml"
+                      className="hidden"
+                      onChange={async (e) => {
+                        const file = e.target.files?.[0]
+                        if (!file || !targetShopId) return
+                        await ensureGalleryBucket()
+                        try {
+                          const url = await uploadLogoPhoto(targetShopId, file)
+                          if (!url) {
+                            toast.error('Erro ao fazer upload (upload retornou vazio).')
+                            return
+                          }
+                          setSiteLogo(url)
+                          const { error } = await supabase
+                            .from('shops')
+                            .update({ logo_url: url.trim() || null })
+                            .eq('id', targetShopId)
+                            .select('id')
+                          if (error) throw error
+                          toast.success('Logo atualizado e salvo!')
                         } catch (err) {
                           const msg = err instanceof Error ? err.message : String(err)
                           toast.error('Erro no upload: ' + msg)

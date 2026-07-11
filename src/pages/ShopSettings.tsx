@@ -19,7 +19,7 @@ import PageTransition from '@/components/PageTransition'
 import { Settings, Save, Loader2, Upload, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { useAuth } from '@/providers/AuthProvider'
-import { Navigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { ensureGalleryBucket, uploadLogoPhoto, deletePhoto } from '@/lib/storage'
 
 // ─── Schema ────────────────────────────────────────────────────────────────────
@@ -41,9 +41,31 @@ type ShopFormValues = z.infer<typeof shopSchema>
 function ShopSettings() {
   const { shop, refreshShop, isAdmin } = useAuth()
 
-  // Admin sem loja não tem o que configurar aqui — redireciona pro painel admin
+  // Admin sem loja vê mensagem em vez de erro
   if (isAdmin && !shop) {
-    return <Navigate to="/admin" replace />
+    return (
+      <PageTransition>
+        <div className="p-4 sm:p-6">
+          <div className="flex flex-col items-center justify-center py-24 text-center">
+            <Settings className="mb-4 size-12 text-indigo-500" />
+            <h2 className="mb-2 text-xl font-semibold">Sem barbearia vinculada</h2>
+            <p className="mb-6 max-w-md text-muted-foreground">
+              Você é admin do sistema mas não é dono de nenhuma barbearia.
+              Para configurar o logo, fotos e site público, acesse o painel{' '}
+              <Link to="/whatsapp" className="text-indigo-400 underline underline-offset-2 hover:text-indigo-300">
+                WhatsApp &gt; Site Público
+              </Link>.
+            </p>
+            <Link
+              to="/admin"
+              className="inline-flex items-center justify-center rounded-lg bg-gradient-to-r from-indigo-600 to-blue-600 px-4 py-2 text-sm font-medium text-white shadow-md hover:from-indigo-500 hover:to-blue-500"
+            >
+              Ir para o painel Admin
+            </Link>
+          </div>
+        </div>
+      </PageTransition>
+    )
   }
 
   const form = useForm<ShopFormValues>({
