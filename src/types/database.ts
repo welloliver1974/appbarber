@@ -51,10 +51,11 @@ export interface Service {
   shop_id: string
   name: string
   description: string | null
-  duration_minutes: number
   price: number
-  active: boolean
+  duration_minutes: number
   buffer_minutes: number | null
+  is_combo: boolean | null
+  active: boolean
   created_at: string
   updated_at: string
 }

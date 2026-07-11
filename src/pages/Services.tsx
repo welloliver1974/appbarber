@@ -16,6 +16,7 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form'
+import { Checkbox } from '@/components/ui/checkbox'
 import { ListSkeleton } from '@/components/Skeleton'
 import PageTransition from '@/components/PageTransition'
 import { Plus, Pencil, Trash2, Scissors, Clock, Search, Filter, DollarSign, Loader2 } from 'lucide-react'
@@ -37,6 +38,7 @@ const serviceSchema = z.object({
   buffer_minutes: z.string().refine((val) => !isNaN(parseInt(val, 10)) && parseInt(val, 10) >= 0, {
     message: 'Buffer inválido. Deve ser maior ou igual a 0 min',
   }),
+  is_combo: z.boolean().optional(),
 })
 
 type ServiceFormValues = z.infer<typeof serviceSchema>
@@ -58,6 +60,7 @@ function Services() {
       price: '',
       duration_minutes: '30',
       buffer_minutes: '0',
+      is_combo: false,
     },
   })
 
@@ -113,6 +116,7 @@ function Services() {
       price: parseFloat(values.price),
       duration_minutes: parseInt(values.duration_minutes, 10),
       buffer_minutes: parseInt(values.buffer_minutes, 10) || 0,
+      is_combo: values.is_combo ?? false,
       shop_id: shop.id,
     }
 
@@ -153,6 +157,7 @@ function Services() {
       price: String(service.price),
       duration_minutes: String(service.duration_minutes),
       buffer_minutes: String(service.buffer_minutes ?? 0),
+      is_combo: service.is_combo ?? false,
     })
     setOpen(true)
   }
@@ -236,6 +241,23 @@ function Services() {
                           <Input placeholder="Ex: 5" type="number" className="border-indigo-500/20 focus:ring-indigo-500" {...field} />
                         </FormControl>
                         <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="is_combo"
+                    render={({ field }) => (
+                      <FormItem className="flex items-center gap-2">
+                        <FormControl>
+                          <Checkbox
+                            checked={field.value ?? false}
+                            onCheckedChange={field.onChange}
+                            className="border-indigo-500/30 focus:ring-indigo-500 data-[state=checked]:bg-indigo-600 data-[state=checked]:border-indigo-600"
+                          />
+                        </FormControl>
+                        <FormLabel className="mb-0 cursor-pointer">Combo (pacote de serviços)</FormLabel>
                       </FormItem>
                     )}
                   />
