@@ -339,9 +339,14 @@ function Services() {
                           <span className={`rounded-full px-2.5 py-1 ${service.active ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' : 'bg-muted text-muted-foreground'}`}>
                             {service.active ? 'Ativo' : 'Inativo'}
                           </span>
-                          <span className="rounded-full bg-indigo-500/10 px-2.5 py-1 text-indigo-600 dark:text-indigo-400">
-                            {service.duration_minutes} min
-                          </span>
+<span className="rounded-full bg-indigo-500/10 px-2.5 py-1 text-indigo-600 dark:text-indigo-400">
+                              {service.duration_minutes} min
+                            </span>
+{service.is_combo && (
+  <span className="rounded-full bg-amber-500/10 px-2.5 py-1 text-amber-600 dark:text-amber-400">
+    Combo
+  </span>
+)}
                           {service.buffer_minutes ? (
                             <span className="rounded-full bg-amber-500/10 px-2.5 py-1 text-amber-600 dark:text-amber-400">
                               +{service.buffer_minutes} min limpeza
