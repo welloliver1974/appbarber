@@ -385,3 +385,42 @@ src/
 - **Build:** `npm run build` passou sem erros.
 - **Commit:** `f04033f` – “feat: add Checkbox component and ensure combo checkbox works in Services form”.
 
+---
+
+## 📋 Estado Atual & Próximos Passos (Resumo para IA)
+
+### ✅ Concluído
+- Autenticação (login por barbearia / admin) + fluxo de onboarding.
+- Dashboard com agenda semanal, indicadores de atenção, faturamento do mês.
+- CRUD de Barbeiros, Serviços, Clientes, Agendamentos (validação de horários, buffer, price_at_booking).
+- Relatórios (resumo, por barbeiro, faturamento mensal).
+- Configurações WhatsApp (Evolution API) + Webhook + Cron de lembrete + Re-engajamento.
+- Site público (slug, hero, galeria, depoimentos, portfólio, horários “fechado”, Maps/Waze, telefone formatado).
+- Configurações da loja (nome, telefone, endereço, logo) com upload direto ao Storage.
+- Painel Admin (listar/criar/editar/excluir lojas, criar usuário auth via Edge Function `create-auth-user`).
+- RLS corrigido para multi-tenant (admin vê todas, cliente vê só sua loja, anon acessa site público).
+- Push notifications para barbeiros (Web Push + VAPID) – Edge Function `notify-barber-push`, Service Worker, NotificationContext, hook `useBarberPush`.
+- Correções de UI/UX: Dialog scroll, checkbox Combo funcional, card faturamento responsivo.
+- Build validado (`npm run build`) em todas as sessões.
+- Commits sincronizados no `origin/main`.
+
+### 🔧 Pendente / Bloqueado
+1. **Deploy das variáveis de ambiente na Vercel**  
+   - `VITE_ENABLE_BARBER_PUSH=true`  
+   - `VITE_VAPID_PUBLIC_KEY=<chave pública VAPID>`  
+2. **Aplicar migrations pendentes no Supabase (se houver)** – verificar se todas as 3 migrations de push (`20260730…`, `20260731…`, `20260732…`) já estão aplicadas no projeto linked.  
+3. **Testes automatizados** – adicionar testes unitários/integração para:  
+   - Criação de serviço com `is_combo`.  
+   - Fluxo de push (subscribe → trigger → receive).  
+   - RLS multi-tenant (admin vs cliente vs anon).  
+4. **Documentação de setup local** – criar/atualizar `SETUP.md` ou `README` com:  
+   - Criação do bucket `gallery` e policies de Storage.  
+   - Inserção das VAPID keys no Supabase Edge Function secrets.  
+   - Como rodar `supabase db push` / `supabase functions deploy`.  
+5. **Changelog resumido** – opcional `CHANGELOG.md` com versões (v1.0, v1.1 …) para leitura rápida por humanos/IA.  
+
+### 📌 Como a IA deve proceder
+- Ler este bloco para saber o que **já está pronto** (✅) e o que **falta** (🔧).  
+- Priorizar itens na ordem listada (variáveis Vercel → migrations → testes → docs → changelog).  
+- Ao concluir um item, mover para ✅ e registrar commit correspondente.
+
