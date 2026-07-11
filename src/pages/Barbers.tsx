@@ -268,21 +268,17 @@ function Barbers() {
                     )}
                   />
 
-                  <FormItem className="flex flex-row items-center space-x-2 space-y-0">
-                    <FormControl>
-                      <input
-                        type="checkbox"
-                        checked={pushEnabled}
-                        disabled={pushLoading}
-                        onChange={(e) => {
-                          const checked = e.target.checked
-                          togglePush(checked)
-                        }}
-                        className="size-4 rounded border-indigo-500/30 text-indigo-600 focus:ring-indigo-500"
-                      />
-                    </FormControl>
-                    <FormLabel>Ativar notificações de navegador</FormLabel>
-                  </FormItem>
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      id="push-notifications"
+                      checked={pushEnabled}
+                      disabled={pushLoading}
+                      onChange={(e) => togglePush(e.target.checked)}
+                      className="size-4 rounded border-indigo-500/30 text-indigo-600 focus:ring-indigo-500"
+                    />
+                    <label htmlFor="push-notifications" className="text-sm font-medium">Ativar notificações de navegador</label>
+                  </div>
 
                   <FormField
                     control={form.control}

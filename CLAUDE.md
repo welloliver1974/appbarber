@@ -202,6 +202,16 @@ Após o push, a Vercel faz o deploy automaticamente via webhook. Se não atualiz
   - `post-deploy`: adicionar `VITE_ENABLE_BARBER_PUSH=true` e `VITE_VAPID_PUBLIC_KEY` no Vercel.
 - **Build**: ✅ `npm run build` passa (1.38 s).
 
+---
+
+### Completed in Session 22 — Correção FormField + Dialog overflow (2026-07-11)
+
+- **Problema 1:** `FormField` usado sem `FormControl`/`FormLabel` dentro do `Dialog` de Barbeiros gerava erro TypeScript `TS2353` ("Object literal may only specify known properties...").
+  - **Correção:** Substituí o bloco do checkbox "Ativar notificações de navegador" por HTML simples (`<input type="checkbox">` + `<label>`) que usa o hook `useBarberPush` diretamente, removendo a dependência do `react-hook-form` para esse campo.
+- **Problema 2:** Dialog de criação/edição de barbeiro ficava mais alto que a viewport; botão "Salvar" só aparecia ao redimensionar a janela.
+  - **Correção:** Adicionado `className="max-h-[90vh] overflow-y-auto sm:max-w-sm"` ao `<DialogContent>` em `src/pages/Barbers.tsx`.
+- **Build:** ✅ `npm run build` passa sem erros TypeScript.
+
 ## 🚨 Admin sem loja — Padrão `targetShopId`
 
 Quando o admin está em páginas que manipulam dados de uma loja (WhatsApp, Configurações), **NUNCA use `shop`** — admin não tem loja.
