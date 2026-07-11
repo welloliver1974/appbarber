@@ -319,6 +319,15 @@ src/
 - **FIX:** PublicSite — `formatPhoneInput` comia 2 dígitos do telefone (`5511999999999` era exibido como `(55) 11999-9999` em vez de `(11) 99999-9999`). Corrigido: remove country code `55` antes de formatar
 - **build:** `npm run build` validado
 
+### Sessão 20 — Depoimentos Dinâmicos + Portfólio de Barbeiros (2026-07-10)
+- **Migration:** Criada tabela `testimonials` (id, shop_id, client_name, text, rating) com RLS
+- **Migration:** `ALTER TABLE barbers ADD COLUMN portfolio_photos JSONB`
+- **FEAT:** WhatsAppSettings — novo card "Depoimentos" com CRUD completo (listar, adicionar, remover). Avaliação por estrelas clicáveis. Auto-save no banco
+- **FEAT:** Barbers.tsx — formulário agora inclui upload de **foto de perfil** (com preview circular), **biografia** (textarea, 300 chars) e **galeria de trabalhos** (upload múltiplo com grid de preview + remover por foto)
+- **FEAT:** PublicSite — depoimentos agora carregam do banco (em vez do array `TESTIMONIALS` fixo). Seção "Equipe" mostra grid de fotos do portfólio de cada barbeiro
+- **Arquivos alterados:** `supabase/migrations/2 arquivos`, `src/types/database.ts`, `src/lib/storage.ts`, `src/pages/WhatsAppSettings.tsx`, `src/pages/Barbers.tsx`, `src/pages/PublicSite.tsx`
+- **build:** `npm run build` validado
+
 ### Sessão 15 — Correção Upload de Imagens + Botão Salvar Horários (2026-07-10)
 - **Problema 1:** Upload de fotos (hero/galeria) não funcionava por 3 causas:
   - `ensureGalleryBucket()` tentava criar bucket via client-side (`createBucket` requer `service_role`) — sempre falhava

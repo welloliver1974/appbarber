@@ -4,12 +4,12 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import PageTransition from '@/components/PageTransition'
-import { MessageSquare, Check, X, Loader2, Save, Zap, ShieldCheck, Wifi, AlertTriangle, Globe, Plus, Trash2, Upload, Store } from 'lucide-react'
+import { MessageSquare, Check, X, Loader2, Save, Zap, ShieldCheck, Wifi, AlertTriangle, Globe, Plus, Trash2, Upload, Store, Star } from 'lucide-react'
 import { toast } from 'sonner'
 import { useAuth } from '@/providers/AuthProvider'
 import { buildPublicSiteUrl } from '@/lib/site'
 import { ensureGalleryBucket, uploadHeroPhoto, uploadGalleryPhoto, uploadLogoPhoto, deletePhoto } from '@/lib/storage'
-import type { WhatsAppConfig } from '@/types/database'
+import type { WhatsAppConfig, Testimonial } from '@/types/database'
 
 const DAY_CONFIG = [
   { key: 'segunda', label: 'Segunda-feira' },
@@ -48,6 +48,11 @@ function WhatsAppSettings() {
   const [savingSite, setSavingSite] = useState(false)
 
   const [sitePublicSlug, setSitePublicSlug] = useState<string | null>(null)
+
+  const [testimonials, setTestimonials] = useState<Testimonial[]>([])
+  const [newTestimonialName, setNewTestimonialName] = useState('')
+  const [newTestimonialText, setNewTestimonialText] = useState('')
+  const [newTestimonialRating, setNewTestimonialRating] = useState(5)
 
   const targetShopId = selectedShopId || shop?.id
 
@@ -118,6 +123,13 @@ function WhatsAppSettings() {
         setSiteWorkingHours(wh)
         setSiteClosedDays(closed)
       }
+
+      const { data: testData } = await supabase
+        .from('testimonials')
+        .select('*')
+        .eq('shop_id', targetShopId)
+        .order('created_at', { ascending: false })
+      if (testData) setTestimonials(testData as Testimonial[])
     } finally {
       setLoading(false)
     }
@@ -711,6 +723,108 @@ function WhatsAppSettings() {
                     <p>Link público: <span className="font-mono text-indigo-300">{buildPublicSiteUrl(sitePublicSlug)}</span></p>
                   </div>
                 ) : null}
+              </CardContent>
+            </Card>
+
+            {/* ── Testimonials ── */}
+            <Card className="border-indigo-500/10">
+              <CardHeader>
+                <div className="flex items-center gap-2">
+                  <div className="flex size-8 items-center justify-center rounded-lg bg-indigo-500/10 text-indigo-600 dark:text-indigo-400">
+                    <Star className="size-4" />
+                  </div>
+                  <div>
+                    <CardTitle>Depoimentos</CardTitle>
+                    <CardDescription>Avaliações de clientes exibidas no site público</CardDescription>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {testimonials.map((t) => (
+                  <div key={t.id} className="rounded-xl border border-white/[0.08] bg-white/[0.02] p-3 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium">{t.client_name}</span>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="size-7 text-red-400 hover:text-red-300"
+                        onClick={async () => {
+                          const { error } = await supabase.from('testimonials').delete().eq('id', t.id)
+                          if (error) { toast.error('Erro ao remover depoimento'); return }
+                          setTestimonials(testimonials.filter((x) => x.id !== t.id))
+                          toast.success('Depoimento removido')
+                        }}
+                      >
+                        <Trash2 className="size-3.5" />
+                      </Button>
+                    </div>
+                    <p className="text-xs text-muted-foreground leading-relaxed">&ldquo;{t.text}&rdquo;</p>
+                    <div className="flex gap-0.5">
+                      {[...Array(5)].map((_, i) => (
+                        <Star key={i} className={`size-3 ${i < t.rating ? 'fill-amber-500 text-amber-500' : 'text-white/20'}`} />
+                      ))}
+                    </div>
+                  </div>
+                ))}
+                {testimonials.length === 0 && (
+                  <p className="text-sm text-muted-foreground">Nenhum depoimento cadastrado.</p>
+                )}
+
+                <div className="space-y-3 border-t border-white/[0.06] pt-4">
+                  <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Novo depoimento</p>
+                  <Input
+                    placeholder="Nome do cliente"
+                    value={newTestimonialName}
+                    onChange={(e) => setNewTestimonialName(e.target.value)}
+                    className="border-indigo-500/20 focus:ring-indigo-500"
+                  />
+                  <textarea
+                    placeholder="Texto do depoimento"
+                    value={newTestimonialText}
+                    onChange={(e) => setNewTestimonialText(e.target.value)}
+                    rows={3}
+                    className="w-full rounded-lg border border-indigo-500/20 bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none"
+                  />
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-muted-foreground">Avaliação:</span>
+                    <div className="flex gap-1">
+                      {[...Array(5)].map((_, i) => (
+                        <button
+                          key={i}
+                          type="button"
+                          onClick={() => setNewTestimonialRating(i + 1)}
+                          className="transition hover:scale-110"
+                        >
+                          <Star className={`size-5 ${i < newTestimonialRating ? 'fill-amber-500 text-amber-500' : 'text-white/20'}`} />
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <Button
+                    type="button"
+                    disabled={!newTestimonialName.trim() || !newTestimonialText.trim() || !targetShopId}
+                    onClick={async () => {
+                      if (!targetShopId) return
+                      const { error } = await supabase.from('testimonials').insert({
+                        shop_id: targetShopId,
+                        client_name: newTestimonialName.trim(),
+                        text: newTestimonialText.trim(),
+                        rating: newTestimonialRating,
+                      }).select('id').single()
+                      if (error) { toast.error('Erro ao salvar depoimento'); return }
+                      setNewTestimonialName('')
+                      setNewTestimonialText('')
+                      setNewTestimonialRating(5)
+                      const { data } = await supabase.from('testimonials').select('*').eq('shop_id', targetShopId).order('created_at', { ascending: false })
+                      if (data) setTestimonials(data as Testimonial[])
+                      toast.success('Depoimento adicionado!')
+                    }}
+                    className="w-full bg-gradient-to-r from-indigo-600 to-blue-600 text-white shadow-md hover:from-indigo-500 hover:to-blue-500"
+                  >
+                    <Plus className="mr-2 size-4" /> Adicionar depoimento
+                  </Button>
+                </div>
               </CardContent>
             </Card>
           </div>

@@ -63,6 +63,47 @@ export async function deletePhoto(publicUrl: string): Promise<boolean> {
   return true
 }
 
+export async function uploadBarberPhoto(shopId: string, barberId: string, file: File): Promise<string | null> {
+  const ext = file.name.split('.').pop() || 'jpg'
+  const path = `${shopId}/barbers/${barberId}.${ext}`
+
+  const { error } = await supabase.storage
+    .from(GALLERY_BUCKET)
+    .upload(path, file, { upsert: true })
+
+  if (error) {
+    console.error('[Storage] Erro ao upload barber photo:', error.message)
+    throw error
+  }
+
+  const { data: urlData } = supabase.storage
+    .from(GALLERY_BUCKET)
+    .getPublicUrl(path)
+
+  return urlData?.publicUrl ?? null
+}
+
+export async function uploadBarberPortfolioPhoto(shopId: string, file: File): Promise<string | null> {
+  const ext = file.name.split('.').pop() || 'jpg'
+  const timestamp = Date.now()
+  const path = `${shopId}/barbers/portfolio/${timestamp}.${ext}`
+
+  const { error } = await supabase.storage
+    .from(GALLERY_BUCKET)
+    .upload(path, file, { upsert: true })
+
+  if (error) {
+    console.error('[Storage] Erro ao upload portfolio:', error.message)
+    throw error
+  }
+
+  const { data: urlData } = supabase.storage
+    .from(GALLERY_BUCKET)
+    .getPublicUrl(path)
+
+  return urlData?.publicUrl ?? null
+}
+
 export async function uploadLogoPhoto(shopId: string, file: File): Promise<string | null> {
   const ext = file.name.split('.').pop() || 'jpg'
   const path = `${shopId}/logo.${ext}`

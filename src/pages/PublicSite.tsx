@@ -8,7 +8,7 @@ import { loadPublicShopContext, resolvePublicShopSlug } from '@/lib/public-site'
 import { getAvailableSlots } from '@/lib/availability'
 import { getUTC3DateKey } from '@/lib/timezone'
 import { sendText } from '@/lib/evolution'
-import type { Barber, Service, Shop } from '@/types/database'
+import type { Barber, Service, Shop, Testimonial } from '@/types/database'
 
 function normalizePhone(value: string) {
   return value.replace(/\D/g, '')
@@ -46,27 +46,6 @@ const DAY_LABELS: Record<string, string> = {
 }
 
 const DAY_ORDER = ['domingo', 'segunda', 'terca', 'quarta', 'quinta', 'sexta', 'sabado']
-
-const TESTIMONIALS = [
-  {
-    name: 'Carlos Mendes',
-    text: 'Atendimento excepcional e ambiente de altíssimo nível. O corte foi impecável e a pontualidade me conquistou de verdade.',
-    rating: 5,
-    date: 'Há 2 dias',
-  },
-  {
-    name: 'Bruno Rodrigues',
-    text: 'Melhor barbearia de Santo André. O agendamento online é extremamente simples e o serviço de toalha quente é sensacional.',
-    rating: 5,
-    date: 'Há 1 semana',
-  },
-  {
-    name: 'Rafael Souza',
-    text: 'Cabelo e barba perfeitos. O café é de cortesia e de excelente qualidade. Recomendo de olhos fechados pela excelência.',
-    rating: 5,
-    date: 'Há 2 semanas',
-  },
-]
 
 function getSlugFromPath(): string | null {
   const match = window.location.pathname.match(/^\/public\/([^/]+)/)
@@ -132,6 +111,7 @@ function PublicSite() {
   const [shop, setShop] = useState<Shop | null>(null)
   const [barbers, setBarbers] = useState<Barber[]>([])
   const [services, setServices] = useState<Service[]>([])
+  const [testimonials, setTestimonials] = useState<Testimonial[]>([])
   
   // Wizard state
   const [step, setStep] = useState(1)
@@ -171,6 +151,13 @@ function PublicSite() {
         setBarbers(context.barbers)
         setServices(context.services)
         setError('')
+
+        const { data: tData } = await supabase
+          .from('testimonials')
+          .select('*')
+          .eq('shop_id', context.shop.id)
+          .order('created_at', { ascending: false })
+        if (tData) setTestimonials(tData as Testimonial[])
 
         // ── Etapa 1: Barber Slug deep-link ──
         // Se a URL contiver ?barber=<id|nome|slug>, auto-seleciona o barbeiro
@@ -647,6 +634,15 @@ function PublicSite() {
                   </div>
                   <h3 className="text-base font-semibold text-white group-hover:text-amber-400 transition-colors">{barber.name}</h3>
                   <p className="mt-2 text-sm text-neutral-400 leading-relaxed">{barber.bio || 'Especialista em barbearia clássica e moderna com foco na excelência e estilo.'}</p>
+                  {barber.portfolio_photos && barber.portfolio_photos.length > 0 && (
+                    <div className="mt-4 grid grid-cols-3 gap-2">
+                      {barber.portfolio_photos.map((url, i) => (
+                        <div key={i} className="overflow-hidden rounded-lg border border-white/[0.04]">
+                          <img src={url} alt={`Trabalho de ${barber.name}`} className="aspect-square w-full object-cover transition duration-300 group-hover:scale-105" loading="lazy" />
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
@@ -1137,8 +1133,8 @@ function PublicSite() {
         <ScrollRevealSection>
           <SectionHeading overline="Avaliações" title="Opinião de quem frequenta" />
           <div className="grid gap-6 md:grid-cols-3">
-            {TESTIMONIALS.map((t, idx) => (
-              <div key={idx} className="rounded-2xl border border-white/[0.05] bg-neutral-900/30 p-6 backdrop-blur-md space-y-4 flex flex-col justify-between">
+            {testimonials.map((t) => (
+              <div key={t.id} className="rounded-2xl border border-white/[0.05] bg-neutral-900/30 p-6 backdrop-blur-md space-y-4 flex flex-col justify-between">
                 <div className="space-y-3">
                   <div className="flex gap-1">
                     {[...Array(t.rating)].map((_, i) => (
@@ -1147,10 +1143,9 @@ function PublicSite() {
                   </div>
                   <p className="text-sm text-neutral-400 italic leading-relaxed">"{t.text}"</p>
                 </div>
-                <div className="flex items-center justify-between pt-3 border-t border-white/[0.03] text-xs text-neutral-500">
-                  <span className="font-semibold text-white">{t.name}</span>
-                  <span>{t.date}</span>
-                </div>
+                  <div className="flex items-center justify-between pt-3 border-t border-white/[0.03] text-xs text-neutral-500">
+                    <span className="font-semibold text-white">{t.client_name}</span>
+                  </div>
               </div>
             ))}
           </div>

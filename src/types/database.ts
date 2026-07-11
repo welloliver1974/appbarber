@@ -23,8 +23,18 @@ export interface Barber {
   photo_url: string | null
   bio: string | null
   active: boolean
+  portfolio_photos: string[] | null
   created_at: string
   updated_at: string
+}
+
+export interface Testimonial {
+  id: string
+  shop_id: string
+  client_name: string
+  text: string
+  rating: number
+  created_at: string
 }
 
 export interface BarberAvailability {
@@ -123,6 +133,7 @@ export interface Database {
       appointments: { Row: Appointment; Insert: Omit<Appointment, 'id' | 'created_at' | 'updated_at'>; Update: Partial<Omit<Appointment, 'id'>> }
       whatsapp_configs: { Row: WhatsAppConfig; Insert: Omit<WhatsAppConfig, 'id' | 'created_at' | 'updated_at'>; Update: Partial<Omit<WhatsAppConfig, 'id'>> }
       google_calendar_tokens: { Row: GoogleCalendarToken; Insert: Omit<GoogleCalendarToken, 'id' | 'created_at' | 'updated_at'>; Update: Partial<Omit<GoogleCalendarToken, 'id'>> }
+      testimonials: { Row: Testimonial; Insert: Omit<Testimonial, 'id' | 'created_at'>; Update: Partial<Omit<Testimonial, 'id'>> }
     }
   }
 }

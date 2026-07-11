@@ -18,9 +18,10 @@ import {
 } from '@/components/ui/form'
 import { ListSkeleton } from '@/components/Skeleton'
 import PageTransition from '@/components/PageTransition'
-import { Plus, Pencil, Trash2, Users, Clock, Search, Filter, Loader2 } from 'lucide-react'
+import { Plus, Pencil, Trash2, Users, Clock, Search, Filter, Loader2, Upload } from 'lucide-react'
 import { toast } from 'sonner'
 import { useAuth } from '@/providers/AuthProvider'
+import { ensureGalleryBucket, uploadBarberPhoto, uploadBarberPortfolioPhoto, deletePhoto } from '@/lib/storage'
 import type { Barber, BarberAvailability } from '@/types/database'
 
 const DAYS = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado']
@@ -34,6 +35,8 @@ const barberSchema = z.object({
     .string()
     .regex(/^\d{10,15}$/, 'Formato inválido. Use código do país + DDD + número (ex: 5511999999999)')
     .or(z.literal('')),
+  bio: z.string().max(300, 'Bio muito longa').or(z.literal('')),
+  photo_url: z.string().or(z.literal('')),
 })
 
 type BarberFormValues = z.infer<typeof barberSchema>
@@ -52,6 +55,8 @@ function Barbers() {
   const [availOpen, setAvailOpen] = useState(false)
   const [availBarber, setAvailBarber] = useState<Barber | null>(null)
   const [availData, setAvailData] = useState<Record<number, { on: boolean; start: string; end: string }>>({})
+
+  const [newPortfolioPhotos, setNewPortfolioPhotos] = useState<string[]>([])
 
   const form = useForm<BarberFormValues>({
     resolver: zodResolver(barberSchema),
@@ -111,15 +116,21 @@ function Barbers() {
     form.reset({
       name: '',
       phone: '',
+      bio: '',
+      photo_url: '',
     })
     setEditing(null)
+    setNewPortfolioPhotos([])
   }
 
   async function onSubmit(values: BarberFormValues) {
     if (!shop) return
-    const payload = {
+    const payload: Record<string, unknown> = {
       name: values.name.trim(),
       phone: values.phone.trim() || null,
+      bio: values.bio.trim() || null,
+      photo_url: values.photo_url.trim() || null,
+      portfolio_photos: newPortfolioPhotos.length > 0 ? newPortfolioPhotos : null,
     }
 
     try {
@@ -157,7 +168,10 @@ function Barbers() {
     form.reset({
       name: barber.name,
       phone: barber.phone ?? '',
+      bio: barber.bio ?? '',
+      photo_url: barber.photo_url ?? '',
     })
+    setNewPortfolioPhotos(barber.portfolio_photos ?? [])
     setOpen(true)
   }
 
@@ -246,6 +260,121 @@ function Barbers() {
                       </FormItem>
                     )}
                   />
+
+                  <FormField
+                    control={form.control}
+                    name="photo_url"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Foto de Perfil</FormLabel>
+                        <FormControl>
+                          <div className="space-y-2">
+                            {field.value ? (
+                              <div className="relative inline-block">
+                                <img src={field.value} alt="Preview" className="size-20 rounded-full border-2 border-indigo-500/20 object-cover" />
+                              </div>
+                            ) : null}
+                            <label className="flex cursor-pointer items-center gap-2 rounded-xl border border-indigo-500/20 bg-indigo-500/5 px-4 py-2 text-sm text-muted-foreground transition hover:bg-indigo-500/10">
+                              <Upload className="size-4 text-indigo-500" />
+                              {field.value ? 'Trocar foto' : 'Fazer upload'}
+                              <input
+                                type="file"
+                                accept="image/jpeg,image/png,image/webp"
+                                className="hidden"
+                                onChange={async (e) => {
+                                  const file = e.target.files?.[0]
+                                  if (!file || !shop) return
+                                  await ensureGalleryBucket()
+                                  try {
+                                    const barberId = editing?.id || 'new'
+                                    const url = await uploadBarberPhoto(shop.id, barberId, file)
+                                    if (url) {
+                                      field.onChange(url)
+                                      toast.success('Foto enviada!')
+                                    }
+                                  } catch (err) {
+                                    toast.error('Erro no upload')
+                                  }
+                                }}
+                              />
+                            </label>
+                          </div>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="bio"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Biografia</FormLabel>
+                        <FormControl>
+                          <textarea
+                            placeholder="Fale sobre o barbeiro..."
+                            rows={3}
+                            className="w-full rounded-lg border border-indigo-500/20 bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none"
+                            {...field}
+                          />
+                        </FormControl>
+                        <p className="text-xs text-muted-foreground">Máximo 300 caracteres. Exibida no site público.</p>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  {/* ── Portfolio Photos ── */}
+                  <div className="space-y-2">
+                    <FormLabel>Galeria de Trabalhos</FormLabel>
+                    {newPortfolioPhotos.length > 0 && (
+                      <div className="grid grid-cols-3 gap-2">
+                        {newPortfolioPhotos.map((url, idx) => (
+                          <div key={idx} className="group relative overflow-hidden rounded-lg border border-white/10">
+                            <img src={url} alt={`Trabalho ${idx + 1}`} className="aspect-square w-full object-cover" />
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon"
+                              className="absolute right-0.5 top-0.5 size-6 bg-black/50 text-white opacity-0 transition group-hover:opacity-100 hover:bg-black/70"
+                              onClick={async () => {
+                                if (url.startsWith(supabase.storage.from('gallery').getPublicUrl('').data?.publicUrl ?? '')) {
+                                  await deletePhoto(url)
+                                }
+                                setNewPortfolioPhotos(newPortfolioPhotos.filter((_, i) => i !== idx))
+                              }}
+                            >
+                              <Trash2 className="size-3" />
+                            </Button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    <label className="flex cursor-pointer items-center gap-2 rounded-xl border border-indigo-500/20 bg-indigo-500/5 px-4 py-2 text-sm text-muted-foreground transition hover:bg-indigo-500/10">
+                      <Upload className="size-4 text-indigo-500" /> Adicionar foto
+                      <input
+                        type="file"
+                        accept="image/jpeg,image/png,image/webp"
+                        className="hidden"
+                        onChange={async (e) => {
+                          const file = e.target.files?.[0]
+                          if (!file || !shop) return
+                          await ensureGalleryBucket()
+                          try {
+                            const url = await uploadBarberPortfolioPhoto(shop.id, file)
+                            if (url) {
+                              setNewPortfolioPhotos([...newPortfolioPhotos, url])
+                              toast.success('Foto adicionada!')
+                            }
+                          } catch (err) {
+                            toast.error('Erro no upload')
+                          }
+                        }}
+                      />
+                    </label>
+                    <p className="text-xs text-muted-foreground">Fotos dos trabalhos realizados, exibidas no site público.</p>
+                  </div>
 
                   <Button type="submit" disabled={form.formState.isSubmitting} className="w-full bg-gradient-to-r from-indigo-600 to-blue-600 text-white shadow-md hover:from-indigo-500 hover:to-blue-500">
                     {form.formState.isSubmitting ? <><Loader2 className="mr-2 size-4 animate-spin" /> Salvando...</> : 'Salvar'}
