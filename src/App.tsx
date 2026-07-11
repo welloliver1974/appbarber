@@ -1,4 +1,5 @@
-import { lazy, Suspense } from 'react'
+import { lazy, Suspense, useEffect } from 'react'
+import { NotificationProvider } from '@/contexts/NotificationContext'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import AppLayout from '@/components/AppLayout'
 import { shouldRenderPublicSite } from '@/lib/site'
@@ -37,6 +38,13 @@ function PublicSiteLoader() {
 }
 
 function App() {
+  // Register Service Worker for push notifications (feature flag)
+  useEffect(() => {
+    if (import.meta.env.VITE_ENABLE_BARBER_PUSH === 'true' && 'serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/service-worker.js')
+        .catch(err => console.error('Service Worker registration failed:', err))
+    }
+  }, [])
   if (shouldRenderPublicSite()) {
     return (
       <Suspense fallback={<PublicSiteLoader />}>
@@ -46,7 +54,7 @@ function App() {
   }
 
   return (
-    <BrowserRouter>
+    <BrowserRouter><NotificationProvider>
       <Suspense fallback={<PageLoader />}>
         <Routes>
           <Route path="/login" element={<Login />} />
@@ -66,7 +74,7 @@ function App() {
           </Route>
         </Routes>
       </Suspense>
-    </BrowserRouter>
+    </NotificationProvider></BrowserRouter>
   )
 }
 

@@ -345,3 +345,24 @@ src/
 - **`MANUAL_USO.md`:** Criado manual completo de uso do sistema com 15 seções (login, dashboard, barbeiros, serviços, clientes, agendamentos, relatórios, WhatsApp, site público, configurações, admin, perfis, experiência pública, solução de problemas)
 - **build:** `npm run build` validado com sucesso (v1.10s v1.09s)
 
+### Sessão 21 — Notificações push (Web Push) apenas para Barbeiros (2026-07-11)
+- **Objetivo:** Notificar o **barbeiro** no navegador (PWA) sempre que um agendamento for inserido. Não afeta admin nem a página pública.
+- **Migrations aplicadas via CLI (`supabase db query --linked`):**
+  - `20260730_create_push_subscriptions.sql` – cria tabela `push_subscriptions (barber_id, endpoint, p256dh, auth)`.
+  - `20260731_add_notifications_enabled_to_barbers.sql` – coluna `notifications_enabled BOOLEAN DEFAULT FALSE` em `barbers`.
+  - `20260732_add_barber_push_trigger.sql` – função `notify_barber_push()` + trigger `AFTER INSERT ON appointments` chamando a Edge Function via `net.http_post`.
+- **Edge Function implantada:** `notify-barber-push` (Deno, usa `npm:web-push@3.6.7`). Envio de push com VAPID (`VAPID_PUBLIC_KEY` e `VAPID_PRIVATE_KEY`) para todas as assinaturas do `barber_id`.
+- **Front‑end:**
+  - `src/contexts/NotificationContext.tsx` – permissão, subscribe, unsubscribe (upsert/delete em `push_subscriptions`).
+  - `src/hooks/useBarberPush.ts` – hook que lê/grava `barsers.notifications_enabled`.
+  - `src/pages/Barbers.tsx` – campo `notifications_enabled` no schema Zod; checkbox “Ativar notificações de navegador” no formulário; persiste no insert/update.
+  - `src/types/database.ts` – adicionou `notifications_enabled: boolean` ao interface `Barber`.
+  - `src/App.tsx` – registro do Service Worker somente se `VITE_ENABLE_BARBER_PUSH === 'true'`; árvore de rotas envolvida por `<NotificationProvider>`.
+  - `public/service-worker.js` – handlers `push` e `notificationclick`; usa `/icons.svg`.
+  - `public/manifest.json` + `index.html` – manifesto PWA e `<meta name="theme-color">`.
+- **Env `VAPID` (geradas via `npx web-push generate-vapid-keys`):**
+  - Public: `BCq4dVyfuSCzE0WgCA6YIst9M4p5oMg0h8ONlOsirbacuy-7Hs3us5eOB_GYX3FBRCLwj5V5_vcm3CKowNwEiNg` (front‑end)
+  - Private: `Gj8d_dkAg_32hYGceOz3NlM3CPqElbtxVr9syURMgGU` (backend, segredo do Edge Function)
+- **Configuração na Vercel (a fazer):** `VITE_ENABLE_BARBER_PUSH=true`, `VITE_VAPID_PUBLIC_KEY=<chave>`.
+- **Build:** `npm run build` validado (1.38 s).
+

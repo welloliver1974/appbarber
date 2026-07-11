@@ -23,6 +23,7 @@ export interface Barber {
   photo_url: string | null
   bio: string | null
   active: boolean
+  notifications_enabled: boolean
   portfolio_photos: string[] | null
   created_at: string
   updated_at: string

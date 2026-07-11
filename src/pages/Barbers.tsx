@@ -21,6 +21,7 @@ import PageTransition from '@/components/PageTransition'
 import { Plus, Pencil, Trash2, Users, Clock, Search, Filter, Loader2, Upload } from 'lucide-react'
 import { toast } from 'sonner'
 import { useAuth } from '@/providers/AuthProvider'
+import { useBarberPush } from '@/hooks/useBarberPush'
 import { ensureGalleryBucket, uploadBarberPhoto, uploadBarberPortfolioPhoto, deletePhoto } from '@/lib/storage'
 import type { Barber, BarberAvailability } from '@/types/database'
 
@@ -48,6 +49,7 @@ function Barbers() {
   const [loading, setLoading] = useState(true)
   const [open, setOpen] = useState(false)
   const [editing, setEditing] = useState<Barber | null>(null)
+  const { enabled: pushEnabled, toggle: togglePush, loading: pushLoading } = useBarberPush(editing?.id)
   const [query, setQuery] = useState('')
   const [filter, setFilter] = useState<BarberFilter>('all')
   const [availabilityCount, setAvailabilityCount] = useState<Record<string, number>>({})
@@ -231,7 +233,7 @@ function Barbers() {
                 <Plus className="mr-2 size-4" /> Novo Barbeiro
               </Button>
             </DialogTrigger>
-            <DialogContent>
+            <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-sm">
               <DialogHeader>
                 <DialogTitle>{editing ? 'Editar Barbeiro' : 'Novo Barbeiro'}</DialogTitle>
               </DialogHeader>
@@ -265,6 +267,22 @@ function Barbers() {
                       </FormItem>
                     )}
                   />
+
+                  <FormItem className="flex flex-row items-center space-x-2 space-y-0">
+                    <FormControl>
+                      <input
+                        type="checkbox"
+                        checked={pushEnabled}
+                        disabled={pushLoading}
+                        onChange={(e) => {
+                          const checked = e.target.checked
+                          togglePush(checked)
+                        }}
+                        className="size-4 rounded border-indigo-500/30 text-indigo-600 focus:ring-indigo-500"
+                      />
+                    </FormControl>
+                    <FormLabel>Ativar notificações de navegador</FormLabel>
+                  </FormItem>
 
                   <FormField
                     control={form.control}

@@ -1,0 +1,1 @@
+ALTER TABLE barbers ADD COLUMN notifications_enabled BOOLEAN NOT NULL DEFAULT FALSE;

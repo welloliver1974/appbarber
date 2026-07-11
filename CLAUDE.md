@@ -182,6 +182,26 @@ Após o push, a Vercel faz o deploy automaticamente via webhook. Se não atualiz
 - **SQL directly executed on Supabase Cloud**: UPDATE policies patched with `is_admin()`; storage policies replaced with `Gallery All` single policy
 - **Build**: ✅ `npm run build` passes
 
+---
+
+### Completed in Session 21 — Notificações push para Barbeiros (PWA) (2026-07-11)
+
+- **Objetivo**: enviar notificação de navegador **somente para barbeiros** sempre que um agendamento for inserido, usando Web Push (Service Worker) e PWA.
+- **Mudanças**:
+  - `src/contexts/NotificationContext.tsx` – provê `permission`, `requestPermission`, `subscribe`, `unsubscribe`; faz upsert/delete em `push_subscriptions`.
+  - `src/hooks/useBarberPush.ts` – hook que lê/grava `barbers.notifications_enabled` e dispara `subscribe`/`unsubscribe`.
+  - `src/pages/Barbers.tsx` – novo campo `notifications_enabled` no schema Zod; checkbox “Ativar notificações de navegador” no diálogo de Barbeiros; persistência ao salvar.
+  - `src/types/database.ts` – adicionado campo `notifications_enabled: boolean` à interface `Barber`.
+  - `src/App.tsx` – registro do Service Worker somente quando `VITE_ENABLE_BARBER_PUSH === 'true'`; toda a árvore de rotas envolvida por `<NotificationProvider>`.
+  - `public/service-worker.js` – handlers `push` e `notificationclick`.
+  - `public/manifest.json` + `index.html` – manifesto PWA (cores, ícone SVG) e vínculo `<link rel="manifest">`.
+  - **Migrations** (`20260730_create_push_subscriptions.sql`, `20260731_add_notifications_enabled_to_barbers.sql`, `20260732_add_barber_push_trigger.sql`) – já aplicadas via `supabase db query --linked`.
+  - **Edge Function** `notify-barber-push` – implantada no projeto `chtjqqtvvlamrdesaiwp`; usa `web-push` (VAPID) para enviar a notificação ao `barber_id` recebido no payload.
+- **Securanças**:
+  - VAPID – `VAPID_PUBLIC_KEY`: `BCq4dVyfuSCzE0WgCA6YIst9M4p5oMg0h8ONlOsirbacuy-7Hs3us5eOB_GYX3FBRCLwj5V5_vcm3CKowNwEiNg`; `VAPID_PRIVATE_KEY`: `Gj8d_dkAg_32hYGceOz3NlM3CPqElbtxVr9syURMgGU` (guardada nos secrets da Edge Function e em `NEXT_PUBLIC_BASE_URL` para o `url` da notificação).
+  - `post-deploy`: adicionar `VITE_ENABLE_BARBER_PUSH=true` e `VITE_VAPID_PUBLIC_KEY` no Vercel.
+- **Build**: ✅ `npm run build` passa (1.38 s).
+
 ## 🚨 Admin sem loja — Padrão `targetShopId`
 
 Quando o admin está em páginas que manipulam dados de uma loja (WhatsApp, Configurações), **NUNCA use `shop`** — admin não tem loja.

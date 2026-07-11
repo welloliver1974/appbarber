@@ -24,6 +24,7 @@
 - **FEAT-6:** Reagendamento no `ManageBooking`
 - **Sessão 18:** Upload de logo + auto-save hero/galeria
 - **Sessão 19:** Fechado nos horários, badge Premium, Waze, telefone fix
+- **Sessão 21:** Notificações push (Web Push) apenas para barbeiros — PWA, Service Worker, Edge Function `notify-barber-push`, migrações `push_subscriptions` e `notifications_enabled`, deploy completo, VAPID configurado (2026‑07‑11)
 
 ---
 
@@ -81,11 +82,9 @@
 |---|---|
 | CSV / PDF | Adicionar botão de exportação em `Reports.tsx` |
 
-### 9. 🟡 Admin — Notificações Browser
+### 9. ✅ Admin — Notificações Browser (concluída em 2026‑07‑11)
 
-| Item | O que fazer |
-|---|---|
-| Service Worker | Notificar admin quando cliente agenda |
+> Implementado como PWA com Web Push (Service Worker). Notificações são enviadas apenas para barbeiros que ativam a opção na página de “Barbeiros” → “Ativar notificações de navegador”. Detalhes no CLAUDE.md e no README.
 
 ### 10. 🔵 Site Público — Calendário .ics
 
