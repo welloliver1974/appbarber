@@ -411,6 +411,18 @@ src/
 - **Build:** ✅ `npm run build` validado.
 - **Commits:** `f083864` (migration is_combo), `ErrorBoundary` + docs em commit subsequente.
 
+### Sessão 28 — Realtime no Dashboard (2026-07-12)
+- **Objetivo:** Dashboard atualiza sozinho quando um agendamento desta loja muda (novo agendamento pelo site, cancelamento, conclusão), sem precisar de F5.
+- **`src/pages/Dashboard.tsx`:**
+  - Adicionado estado `rtTick` (tick de refresh).
+  - Os dois loaders existentes (`load` de cards/métricas/próximos e `loadSchedule` da agenda semanal) agora incluem `rtTick` nas deps, então re-executam ao mudar.
+  - Novo `useEffect` inscreve canal Supabase Realtime (`postgres_changes` em `appointments`, filtro `shop_id=eq.{shop.id}`, `event: '*'`) que incrementa `rtTick` a cada mudança. Cleanup via `supabase.removeChannel(channel)` ao desmontar/navegar.
+- **⚠️ Requer:** Realtime habilitado na tabela `appointments` no Supabase (publication `supabase_realtime`). Em projetos novos geralmente já vem ativo; se não atualizar, adicionar a tabela à publication no SQL Editor:
+  ```sql
+  alter publication supabase_realtime add table appointments;
+  ```
+- **Build:** ✅ `npm run build` validado (sem erros TypeScript).
+
 ---
 
 ## 📋 Estado Atual & Próximos Passos (Resumo para IA)
@@ -429,6 +441,7 @@ src/
 - Correções de UI/UX: Dialog scroll, checkbox Combo funcional, card faturamento responsivo.
 - Download de arquivo `.ics` (calendário) na tela de sucesso do agendamento público — compatível com Google Calendar, iPhone Calendar e Outlook.
 - `ErrorBoundary` global (`src/components/ErrorBoundary.tsx`) — um erro de runtime numa página não derruba o SPA inteiro.
+- Realtime no Dashboard — atualiza cards, métricas, próximos atendimentos e agenda semanal automaticamente quando um agendamento muda (via Supabase Realtime).
 - Multi-serviço no admin (`Booking.tsx`/`Appointments.tsx`), reagendamento (`ManageBooking.tsx`), lazy loading (`App.tsx`), busca de clientes por telefone (`Clients.tsx`) — todos já implementados.
 - Build validado (`npm run build`) em todas as sessões.
 - Commits sincronizados no `origin/main`.
@@ -440,7 +453,7 @@ src/
 
 ### 🔧 Pendente / Bloqueado
 1. **Aplicar migration `is_combo` no Supabase Cloud** — arquivo já commitado (`supabase/migrations/20260711000000_add_is_combo_to_services.sql`), mas a coluna precisa existir em produção ou o save de serviços com Combo falha. Rodar `supabase db push` ou colar o SQL no SQL Editor.
-2. **Realtime no Dashboard** – hoje não atualiza sozinho quando cria/cancela agendamento; Supabase Realtime seria um ganho de UX real.
+2. **Habilitar Realtime na tabela `appointments`** (se ainda não estiver) — adicionar à publication `supabase_realtime` no SQL Editor: `alter publication supabase_realtime add table appointments;`. O Dashboard (Sessão 28) já escuta o canal.
 3. **Testes automatizados** – adicionar testes unitários/integração para:  
    - Criação de serviço com `is_combo`.  
    - Fluxo de push (subscribe → trigger → receive).  

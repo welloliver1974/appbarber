@@ -169,6 +169,8 @@ function Dashboard() {
   const [schedule, setSchedule] = useState<ScheduleAppt[]>([])
   const [selectedBarber, setSelectedBarber] = useState('')
   const [weekStart, setWeekStart] = useState(() => getUTC3WeekStart())
+  // Tick incrementado pelo Realtime para re-disparar os loaders existentes
+  const [rtTick, setRtTick] = useState(0)
 
   const weekDays = getWeekDays(weekStart)
 
@@ -345,7 +347,7 @@ function Dashboard() {
     }
 
     load()
-  }, [shop?.id, shopLoading])
+  }, [shop?.id, shopLoading, rtTick])
 
   useEffect(() => {
     if (shopLoading) return
@@ -433,7 +435,26 @@ function Dashboard() {
     }
 
     loadSchedule()
-  }, [weekStart, shop?.id, shopLoading])
+  }, [weekStart, shop?.id, shopLoading, rtTick])
+
+  // Realtime: atualiza o dashboard automaticamente quando um agendamento
+  // desta loja muda (novo agendamento, cancelamento, conclusão etc.)
+  useEffect(() => {
+    if (shopLoading || !shop) return
+
+    const channel = supabase
+      .channel(`dashboard-appointments-${shop.id}`)
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'appointments', filter: `shop_id=eq.${shop.id}` },
+        () => setRtTick((t) => t + 1),
+      )
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(channel)
+    }
+  }, [shop?.id, shopLoading])
 
   const filtered = !selectedBarber
     ? schedule
