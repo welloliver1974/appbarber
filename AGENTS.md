@@ -385,6 +385,16 @@ src/
 - **Build:** `npm run build` passou sem erros.
 - **Commit:** `f04033f` – “feat: add Checkbox component and ensure combo checkbox works in Services form”.
 
+### Sessão 25 — Download de arquivo .ics (Calendário) no Site Público (2026-07-12)
+- **Objetivo:** Permitir que o cliente baixe um arquivo `.ics` após agendar no site público, para adicionar o evento automaticamente ao Google Calendar / iPhone Calendar / Outlook.
+- **`src/lib/calendar.ts` (NOVO):** Funções `generateICS(data)` e `downloadICS(content, filename)`.
+  - `generateICS` monta conteúdo iCalendar RFC 5545 com `DTSTART`/`DTEND` em UTC (`YYYYMMDDTHHMMSSZ`), `UID` único (`appbarber-{timestamp}-{random}@appbarber.app`), escape de caracteres especiais (`,`, `;`, `\`, `\n`).
+  - `downloadICS` cria `Blob` (`text/calendar`) e dispara download via link temporário.
+- **`src/pages/PublicSite.tsx`:** Import das funções; estado `icsData` salvo no `handleSubmit` após `setSuccess(true)`; botão **"Baixar Calendário (.ics)"** (ícone `CalendarPlus`) na tela de sucesso; `resetForm()` limpa `icsData`.
+- **Abordagem:** Simples — não usa ID do banco, UID gerado a partir de timestamp+random. Compatível com Google Calendar e iPhone.
+- **Build:** ✅ `npm run build` validado (sem erros TypeScript).
+- **Commit:** `6e1b714` – “feat: add .ics calendar download on public booking success screen”.
+
 ---
 
 ## 📋 Estado Atual & Próximos Passos (Resumo para IA)
@@ -401,6 +411,7 @@ src/
 - RLS corrigido para multi-tenant (admin vê todas, cliente vê só sua loja, anon acessa site público).
 - Push notifications para barbeiros (Web Push + VAPID) – Edge Function `notify-barber-push`, Service Worker, NotificationContext, hook `useBarberPush`.
 - Correções de UI/UX: Dialog scroll, checkbox Combo funcional, card faturamento responsivo.
+- Download de arquivo `.ics` (calendário) na tela de sucesso do agendamento público — compatível com Google Calendar, iPhone Calendar e Outlook.
 - Build validado (`npm run build`) em todas as sessões.
 - Commits sincronizados no `origin/main`.
 
