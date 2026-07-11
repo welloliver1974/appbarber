@@ -19,6 +19,23 @@ async function getConfig(shopId: string): Promise<WhatsAppConfig | null> {
   return data as WhatsAppConfig
 }
 
+export async function checkWhatsAppStatus(shopId: string): Promise<'connected' | 'disconnected' | 'unknown'> {
+  try {
+    const config = await getConfig(shopId)
+    if (!config) return 'unknown'
+
+    const url = `${config.server_url.replace(/\/$/, '')}/instance/connectionState/${config.instance_name}`
+    const res = await fetch(url, { headers: { apikey: config.api_key } })
+    if (!res.ok) return 'disconnected'
+
+    const json = await res.json() as { instance?: { state?: string }; state?: string }
+    const rawState = json?.instance?.state ?? json?.state ?? ''
+    return rawState === 'open' ? 'connected' : 'disconnected'
+  } catch {
+    return 'disconnected'
+  }
+}
+
 export async function sendText({ number, text, shopId }: SendTextParams): Promise<boolean> {
   try {
     const config = await getConfig(shopId)

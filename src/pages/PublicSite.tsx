@@ -7,7 +7,7 @@ import { supabase } from '@/lib/supabase'
 import { loadPublicShopContext, resolvePublicShopSlug } from '@/lib/public-site'
 import { getAvailableSlots } from '@/lib/availability'
 import { getUTC3DateKey } from '@/lib/timezone'
-import { sendText } from '@/lib/evolution'
+import { sendText, checkWhatsAppStatus } from '@/lib/evolution'
 import type { Barber, Service, Shop, Testimonial } from '@/types/database'
 
 function normalizePhone(value: string) {
@@ -129,6 +129,7 @@ function PublicSite() {
   const [success, setSuccess] = useState(false)
   const [availableSlots, setAvailableSlots] = useState<string[]>([])
   const [loadingSlots, setLoadingSlots] = useState(false)
+  const [whatsAppOnline, setWhatsAppOnline] = useState<boolean | null>(null)
 
   const toggleServiceSelection = (id: string) => {
     setServiceIds((prev) =>
@@ -184,6 +185,11 @@ function PublicSite() {
     }
     load()
   }, [slug])
+
+  useEffect(() => {
+    if (!shop) return
+    checkWhatsAppStatus(shop.id).then((status) => setWhatsAppOnline(status === 'connected'))
+  }, [shop?.id])
 
   const selectedServices = useMemo(() => {
     return services.filter((s) => serviceIds.includes(s.id))
@@ -253,7 +259,7 @@ function PublicSite() {
         dayNum,
         monthName,
         isSunday: dayOfWeek === 0,
-        isOpen: dayOfWeek === 0 ? hasHours : true
+        isOpen: hasHours
       })
     }
     return days
@@ -453,7 +459,7 @@ function PublicSite() {
               </div>
               <div className="space-y-2">
                 <h2 className="text-2xl font-display text-neutral-100">Solicitação Confirmada!</h2>
-                <p className="text-sm text-white/50">Seu horário foi reservado. Detalhes enviados via WhatsApp.</p>
+                <p className="text-sm text-white/50">{whatsAppOnline === false ? 'Seu horário foi reservado! Confirme pelo WhatsApp abaixo.' : 'Seu horário foi reservado. Detalhes enviados via WhatsApp.'}</p>
               </div>
               
               <div className="rounded-2xl border border-white/[0.04] bg-white/[0.01] p-5 text-left space-y-4">
@@ -691,6 +697,22 @@ function PublicSite() {
                     </div>
                     <span className="text-xs text-neutral-400 uppercase tracking-wider">Etapa {step} de 4</span>
                   </div>
+
+                  {whatsAppOnline === false && shop?.phone && (
+                    <div className="rounded-2xl border border-amber-500/20 bg-amber-500/5 p-4">
+                      <div className="flex items-center justify-between gap-3">
+                        <p className="text-sm text-amber-300">Agendamento online temporariamente indisponível</p>
+                        <a
+                          href={`https://wa.me/${normalizePhone(shop.phone)}?text=${encodeURIComponent('Olá! Gostaria de agendar um horário.')}`}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="shrink-0 rounded-full bg-amber-500 px-4 py-1.5 text-xs font-bold text-neutral-950 hover:bg-amber-600 transition"
+                        >
+                          Agendar via WhatsApp
+                        </a>
+                      </div>
+                    </div>
+                  )}
 
                   {/* STEP 1: SERVICES SELECTION */}
                   {step === 1 && (

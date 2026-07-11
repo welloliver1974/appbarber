@@ -67,6 +67,17 @@ function Barbers() {
   })
 
   useEffect(() => {
+    if (editing) {
+      form.reset({
+        name: editing.name,
+        phone: editing.phone ?? '',
+        bio: editing.bio ?? '',
+        photo_url: editing.photo_url ?? '',
+      })
+    }
+  }, [editing, form])
+
+  useEffect(() => {
     load()
   }, [shop?.id, shopLoading])
 
@@ -165,12 +176,6 @@ function Barbers() {
 
   function edit(barber: Barber) {
     setEditing(barber)
-    form.reset({
-      name: barber.name,
-      phone: barber.phone ?? '',
-      bio: barber.bio ?? '',
-      photo_url: barber.photo_url ?? '',
-    })
     setNewPortfolioPhotos(barber.portfolio_photos ?? [])
     setOpen(true)
   }

@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { CheckCircle, Sparkles, ChevronLeft, User, Phone, Sun, Moon, Clock, CalendarDays, BadgeCheck, Info, Scissors } from 'lucide-react'
 import { Toaster, toast } from 'sonner'
-import { sendText } from '@/lib/evolution'
+import { sendText, checkWhatsAppStatus } from '@/lib/evolution'
 import { getAvailableSlots } from '@/lib/availability'
 import { getUTC3DateKey } from '@/lib/timezone'
 import { useAuth } from '@/providers/AuthProvider'
@@ -43,6 +43,12 @@ function Booking() {
   const [availableSlots, setAvailableSlots] = useState<string[]>([])
   const [loadingSlots, setLoadingSlots] = useState(false)
   const [step, setStep] = useState(1)
+  const [whatsAppOnline, setWhatsAppOnline] = useState<boolean | null>(null)
+
+  useEffect(() => {
+    if (!shop) return
+    checkWhatsAppStatus(shop.id).then((status) => setWhatsAppOnline(status === 'connected'))
+  }, [shop?.id])
 
   useEffect(() => {
     if (shopLoading) return
@@ -294,6 +300,21 @@ function Booking() {
           ) : (
             <div className="grid gap-6 lg:grid-cols-[1.15fr_0.85fr]">
               <form onSubmit={handleSubmit} className="space-y-4">
+                {whatsAppOnline === false && shop?.phone && (
+                  <div className="rounded-2xl border border-amber-500/20 bg-amber-500/5 p-4">
+                    <div className="flex items-center justify-between gap-3">
+                      <p className="text-sm text-amber-600 dark:text-amber-400">Agendamento online temporariamente indisponível</p>
+                      <a
+                        href={`https://wa.me/${normalizePhone(shop.phone)}?text=${encodeURIComponent('Olá! Gostaria de agendar um horário.')}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="shrink-0 rounded-full bg-amber-500 px-4 py-1.5 text-xs font-bold text-neutral-950 hover:bg-amber-600 transition"
+                      >
+                        Agendar via WhatsApp
+                      </a>
+                    </div>
+                  </div>
+                )}
                 {step === 1 && (
                   <div className="animate-fade-in-up space-y-4">
                     <div className="rounded-xl border border-indigo-500/10 bg-indigo-500/5 p-4">
