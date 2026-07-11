@@ -497,7 +497,7 @@ function Dashboard() {
                         <Icon className="size-5" />
                       </div>
                     </div>
-                    <p className="text-4xl font-bold tracking-tight whitespace-nowrap">
+                    <p className={isCurrency ? "text-2xl sm:text-3xl font-bold tracking-tight" : "text-3xl sm:text-4xl font-bold tracking-tight"}>
                       {isCurrency ? (
                         <span>{value}</span>
                       ) : (
