@@ -3,7 +3,7 @@ import { supabase } from '@/lib/supabase'
 import type { Shop } from '@/types/database'
 import { buildPublicSlug } from '@/lib/site'
 
-export async function resolveActiveShop(user: User | null, isAdmin = false): Promise<Shop | null> {
+export async function resolveActiveShop(user: User | null): Promise<Shop | null> {
   if (!user) return null
 
   const { data: shop, error } = await supabase
@@ -17,18 +17,7 @@ export async function resolveActiveShop(user: User | null, isAdmin = false): Pro
     return null
   }
 
-  if (!shop) {
-    if (isAdmin) {
-      const { data: firstShop } = await supabase
-        .from('shops')
-        .select('*')
-        .order('created_at', { ascending: true })
-        .limit(1)
-        .maybeSingle()
-      if (firstShop) return firstShop as Shop
-    }
-    return null
-  }
+  if (!shop) return null
 
   const typed = shop as Shop
   if (!typed.public_slug) {
