@@ -428,6 +428,15 @@ src/
 - **`src/pages/Booking.tsx`:** Import de `generateICS`/`downloadICS`/`AppointmentICSData`; estado `icsData`; captura dos dados no `handleSubmit` (após `setSuccess(true)`); botão outline índigo "Baixar Calendário (.ics)" na tela de sucesso (condicional a `icsData`); `reset()` limpa `icsData`. Botões envolvidos em `flex flex-col gap-2` com `w-full`.
 - **Build:** ✅ `npm run build` validado.
 
+### Sessão 30 — Fix i18n dos filtros (Serviços/Barbeiros/Clientes) (2026-07-11)
+- **Problema:** Os seletores de filtro (Serviços, Barbeiros) e ordenação (Clientes) mostravam o valor bruto em inglês (`all`/`active`/`inactive`/`name`/`recent`) quando uma opção era selecionada, apesar dos `SelectItem` estarem em pt-BR.
+- **Causa:** `Select.Value` do `@base-ui/react/select` renderiza o `value` do item selecionado, não o texto do label. (Mesmo comportamento tratado na Sessão 14 no Dashboard.)
+- **Correção:** Passada função de mapeamento `valor → label` como children do `<SelectValue>`:
+  - `src/pages/Services.tsx` + `src/pages/Barbers.tsx`: `{ all: 'Todos', active: 'Ativos', inactive: 'Inativos' }`
+  - `src/pages/Clients.tsx`: `{ name: 'Nome (A-Z)', recent: 'Recentes' }`
+- **Build:** ✅ `npm run build` validado.
+- **Commit:** `dcf341d` — "fix: traduz labels dos filtros de Serviços, Barbeiros e Clientes".
+
 ---
 
 ## 📋 Estado Atual & Próximos Passos (Resumo para IA)

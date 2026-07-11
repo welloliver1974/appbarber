@@ -3,9 +3,25 @@
 > 🚨 **IMPORTANT**: READ THIS BEFORE TAKING ANY ACTION.
 > Any AI agent accessing this codebase MUST follow this guide. Do not reverse, rewrite, or roll back features from completed sessions.
 
-## Current State (Session 17 Complete — FEAT-5: price_at_booking + Faturamento na Dashboard)
+## Current State (Session 30 Complete — Fix i18n dos filtros)
 
 All code fully written, validated with `npm run build`.
+
+### Completed in Session 30 — Tradução dos labels de filtro (2026-07-11)
+- **Problema**: seletores de filtro/ordenação em Serviços, Barbeiros e Clientes exibiam o valor bruto em inglês (`all`/`active`/`inactive`/`name`/`recent`) quando uma opção estava selecionada. `Select.Value` do `@base-ui/react/select` mostra o `value`, não o label do `SelectItem`.
+- **Correção**: passada função de mapeamento `valor → label` como filho do `SelectValue`:
+  - `src/pages/Services.tsx`: `{ all: 'Todos', active: 'Ativos', inactive: 'Inativos' }`
+  - `src/pages/Barbers.tsx`: idem
+  - `src/pages/Clients.tsx`: `{ name: 'Nome (A-Z)', recent: 'Recentes' }`
+- **Padrão**: sempre que usar `<SelectValue>` com valores em inglês, passar children função para exibir o label pt-BR (mesmo bug da Sessão 14 no Dashboard).
+- **Build**: ✅ `npm run build` validado. Commit `dcf341d`.
+
+### Completed in Session 17 — FEAT-5: `price_at_booking` + Faturamento na Dashboard (2026-07-10)
+- **Migration**: `20260710170000_add_price_at_booking.sql` — `ALTER TABLE appointments ADD COLUMN price_at_booking NUMERIC(10,2)`
+- **`database.ts`**: `price_at_booking: number | null` adicionado na interface `Appointment`
+- **`Appointments.tsx`**: salva `price_at_booking: selectedService?.price` no insert
+- **`Booking.tsx`**: salva `price_at_booking: selectedService?.price` no insert
+- **`PublicSite.tsx`**: salva `totalPrice` (soma dos serviços) como `price_at_booking`
 
 ### Completed in Session 17 — FEAT-5: `price_at_booking` + Faturamento na Dashboard (2026-07-10)
 - **Migration**: `20260710170000_add_price_at_booking.sql` — `ALTER TABLE appointments ADD COLUMN price_at_booking NUMERIC(10,2)`
