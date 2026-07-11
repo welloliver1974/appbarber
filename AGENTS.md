@@ -395,6 +395,13 @@ src/
 - **Build:** ✅ `npm run build` validado (sem erros TypeScript).
 - **Commit:** `6e1b714` – “feat: add .ics calendar download on public booking success screen”.
 
+### Sessão 26 — Ajuste de layout da tela de confirmação (2026-07-12)
+- **Problema:** Na tela de sucesso do agendamento público, os 4 botões (Novo agendamento, Voltar ao início, Falar com a Barbearia, Baixar Calendário) não cabiam e ficavam cortados.
+- **Causa:** O componente `Button` (`src/components/ui/button.tsx`) tem `whitespace-nowrap` + `shrink-0`; no container `flex flex-col gap-3 sm:flex-row sm:justify-center` (sem `flex-wrap`) os 4 botões estouravam a largura do card. O container externo da tela usava `overflow-hidden`, cortando também verticalmente.
+- **Correção:** Container de botões trocado para `grid grid-cols-1 gap-3 sm:grid-cols-2 pt-2` (2x2 no `sm+`, empilhado no mobile); `w-full` adicionado aos 4 botões; container externo de `overflow-hidden` para `overflow-x-hidden` (libera rolagem vertical, mantém glow radial cortado na horizontal).
+- **Build:** ✅ `npm run build` validado (sem erros TypeScript).
+- **Commit:** `0d56a1a` – “fix: ajusta tela de confirmação do agendamento para caber todos os botões”.
+
 ---
 
 ## 📋 Estado Atual & Próximos Passos (Resumo para IA)
