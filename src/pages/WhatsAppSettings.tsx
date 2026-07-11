@@ -44,6 +44,7 @@ function WhatsAppSettings() {
   const [siteLogo, setSiteLogo] = useState('')
   const [siteGalleryPhotos, setSiteGalleryPhotos] = useState<string[]>([])
   const [siteWorkingHours, setSiteWorkingHours] = useState<Record<string, { start: string; end: string }>>({})
+  const [siteClosedDays, setSiteClosedDays] = useState<string[]>([])
   const [savingSite, setSavingSite] = useState(false)
 
   const [sitePublicSlug, setSitePublicSlug] = useState<string | null>(null)
@@ -102,13 +103,20 @@ function WhatsAppSettings() {
         setSiteGalleryPhotos(Array.isArray(s.gallery_photos) ? s.gallery_photos : [])
 
         const wh: Record<string, { start: string; end: string }> = {}
+        const closed: string[] = []
         if (s.working_hours) {
           for (const [day, range] of Object.entries(s.working_hours)) {
-            const [start = '', end = ''] = range.split('-')
-            wh[day] = { start, end }
+            if (range === 'fechado') {
+              closed.push(day)
+              wh[day] = { start: '', end: '' }
+            } else {
+              const [start = '', end = ''] = range.split('-')
+              wh[day] = { start, end }
+            }
           }
         }
         setSiteWorkingHours(wh)
+        setSiteClosedDays(closed)
       }
     } finally {
       setLoading(false)
@@ -197,7 +205,9 @@ function WhatsAppSettings() {
 
     const workingHours: Record<string, string> = {}
     for (const [day, times] of Object.entries(siteWorkingHours)) {
-      if (times.start && times.end) {
+      if (siteClosedDays.includes(day)) {
+        workingHours[day] = 'fechado'
+      } else if (times.start && times.end) {
         workingHours[day] = `${times.start}-${times.end}`
       }
     }
@@ -633,20 +643,39 @@ function WhatsAppSettings() {
                   <div className="space-y-2">
                     {DAY_CONFIG.map(({ key, label }) => {
                       const wh = siteWorkingHours[key] ?? { start: '', end: '' }
+                      const isClosed = siteClosedDays.includes(key)
                       return (
-                        <div key={key} className="grid grid-cols-[100px_1fr_1fr] items-center gap-2">
-                          <span className="text-sm text-muted-foreground">{label}</span>
+                        <div key={key} className="flex items-center gap-2">
+                          <span className="w-[100px] shrink-0 text-sm text-muted-foreground">{label}</span>
+                          <label className="flex cursor-pointer items-center gap-1.5 text-xs">
+                            <input
+                              type="checkbox"
+                              checked={isClosed}
+                              className="size-3.5 accent-indigo-500"
+                              onChange={(e) => {
+                                if (e.target.checked) {
+                                  setSiteClosedDays([...siteClosedDays, key])
+                                  setSiteWorkingHours({ ...siteWorkingHours, [key]: { start: '', end: '' } })
+                                } else {
+                                  setSiteClosedDays(siteClosedDays.filter((d) => d !== key))
+                                }
+                              }}
+                            />
+                            Fechado
+                          </label>
                           <Input
                             type="time"
                             value={wh.start}
+                            disabled={isClosed}
                             onChange={(e) => setSiteWorkingHours({ ...siteWorkingHours, [key]: { ...wh, start: e.target.value } })}
-                            className="border-indigo-500/20 focus:ring-indigo-500"
+                            className="border-indigo-500/20 focus:ring-indigo-500 disabled:opacity-30"
                           />
                           <Input
                             type="time"
                             value={wh.end}
+                            disabled={isClosed}
                             onChange={(e) => setSiteWorkingHours({ ...siteWorkingHours, [key]: { ...wh, end: e.target.value } })}
-                            className="border-indigo-500/20 focus:ring-indigo-500"
+                            className="border-indigo-500/20 focus:ring-indigo-500 disabled:opacity-30"
                           />
                         </div>
                       )

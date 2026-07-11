@@ -248,7 +248,8 @@ function PublicSite() {
       
       const dayOfWeek = current.getDay()
       const dayNameLower = DAY_ORDER[dayOfWeek] ?? ''
-      const hasHours = !!(workingHours[dayNameLower] || workingHours[DAY_LABELS[dayNameLower]]);
+      const dayHours = workingHours[dayNameLower] || workingHours[DAY_LABELS[dayNameLower]]
+      const hasHours = !!dayHours && dayHours !== 'fechado' && dayHours !== 'Fechado'
       
       const weekday = current.toLocaleDateString('pt-BR', { weekday: 'short' })
       const weekdayClean = (weekday.charAt(0).toUpperCase() + weekday.slice(1)).replace('.', '')
@@ -1190,14 +1191,24 @@ function PublicSite() {
                   </InfoBlockWithLink>
                 ) : null}
                 {shop.address ? (
-                  <Button
-                    variant="outline"
-                    className="border-white/[0.08] text-white hover:bg-white/5 w-full mt-2 rounded-xl"
-                    onClick={() => window.open(`https://maps.google.com/?q=${encodeURIComponent(shop.address ?? '')}`, '_blank')}
-                  >
-                    <MapPin className="mr-2 size-4 text-amber-500" />
-                    Como Chegar (Google Maps)
-                  </Button>
+                  <div className="mt-2 grid grid-cols-2 gap-2">
+                    <Button
+                      variant="outline"
+                      className="border-white/[0.08] text-white hover:bg-white/5 rounded-xl"
+                      onClick={() => window.open(`https://maps.google.com/?q=${encodeURIComponent(shop.address ?? '')}`, '_blank')}
+                    >
+                      <MapPin className="mr-2 size-4 text-amber-500" />
+                      Maps
+                    </Button>
+                    <Button
+                      variant="outline"
+                      className="border-white/[0.08] text-white hover:bg-white/5 rounded-xl"
+                      onClick={() => window.open(`https://waze.com/ul?q=${encodeURIComponent(shop.address ?? '')}`, '_blank')}
+                    >
+                      <MapPin className="mr-2 size-4 text-amber-500" />
+                      Waze
+                    </Button>
+                  </div>
                 ) : null}
               </div>
             ) : null}
@@ -1208,10 +1219,15 @@ function PublicSite() {
                 {DAY_ORDER.map((day) => {
                   const hours = workingHours[day] || workingHours[DAY_LABELS[day]]
                   if (!hours) return null
+                  const isFechado = hours === 'fechado' || hours === 'Fechado'
                   return (
                     <div key={day} className="flex items-center justify-between border-b border-white/[0.03] pb-2 text-sm">
                       <span className="text-neutral-400 capitalize">{DAY_LABELS[day]}</span>
-                      <span className="font-medium text-white">{hours}</span>
+                      {isFechado ? (
+                        <span className="text-sm text-red-400/70">Fechado</span>
+                      ) : (
+                        <span className="font-medium text-white">{hours}</span>
+                      )}
                     </div>
                   )
                 })}
