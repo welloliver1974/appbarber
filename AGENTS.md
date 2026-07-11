@@ -300,6 +300,14 @@ src/
 - **`src/pages/WhatsAppSettings.tsx`**: Botão "Copiar link do site" substituído por "Abrir site público" (`window.open`), removido estado `copiedLink` e ícone `Copy` não utilizado
 - **build:** `npm run build` validado
 
+### Sessão 18 — Logo da Barbearia no Site Público (2026-07-10)
+- **Contexto:** Usuário queria substituir o ícone de tesoura (círculo) no PublicSite pelo logo real da barbearia
+- **Diagnóstico:** O código `PublicSite.tsx:545-551` já tinha suporte condicional (`shop.logo_url ? <img> : <Scissors>`), mas `logo_url` da Studio Lima estava `NULL`
+- **ShopSettings.tsx:** Já possuía upload de logo completo (handleLogoUpload + preview + handleLogoRemove + form field `logo_url`) — criado na Sessão 10 e integrado ao form na Sessão 11
+- **Nenhuma alteração de código necessária** — funcionalidade já existia, só precisava de upload via `/settings`
+- **Bucket `gallery` verificado:** existe e está funcional
+- **Git:** `15676a0` (sem alterações de código, apenas atualização deste doc)
+
 ### Sessão 15 — Correção Upload de Imagens + Botão Salvar Horários (2026-07-10)
 - **Problema 1:** Upload de fotos (hero/galeria) não funcionava por 3 causas:
   - `ensureGalleryBucket()` tentava criar bucket via client-side (`createBucket` requer `service_role`) — sempre falhava
