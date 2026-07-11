@@ -36,7 +36,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setShop(null)
         return
       }
-      const currentShop = await resolveActiveShop(sessionUser)
+      const sessionIsAdmin = sessionUser?.email ? ADMIN_EMAILS.includes(sessionUser.email) : false
+      const currentShop = await resolveActiveShop(sessionUser, sessionIsAdmin)
       setShop(currentShop)
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Erro ao carregar barbearia'
