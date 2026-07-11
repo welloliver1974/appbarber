@@ -373,3 +373,7 @@ src/
   - **Correção:** Adicionado `className="max-h-[90vh] overflow-y-auto sm:max-w-sm"` ao `<DialogContent>` em `src/pages/Barbers.tsx`.
 - **Build:** ✅ `npm run build` passa sem erros TypeScript.
 
+### Sessão 23 — Ajuste no card de Faturamento do Mês (2026-07-11)
+- **Dashboard.tsx**: Removido `whitespace-nowrap` e reduzido tamanho da fonte do valor para `text-3xl sm:text-4xl` (era `text-4xl sm:text-5xl`), evitando corte do número quando o faturamento ultrapassa R$ 100,00.
+- **Build:** `npm run build` validado com sucesso.
+
