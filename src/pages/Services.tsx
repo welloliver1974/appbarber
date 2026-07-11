@@ -298,7 +298,9 @@ function Services() {
           <Select value={filter} onValueChange={(v) => setFilter(v as ServiceFilter)}>
             <SelectTrigger className="w-40 border-indigo-500/20 focus:ring-indigo-500">
               <Filter className="mr-2 size-4 text-muted-foreground" />
-              <SelectValue placeholder="Filtro" />
+              <SelectValue placeholder="Filtro">
+                {(value) => ({ all: 'Todos', active: 'Ativos', inactive: 'Inativos' })[value as ServiceFilter] ?? 'Filtro'}
+              </SelectValue>
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Todos</SelectItem>

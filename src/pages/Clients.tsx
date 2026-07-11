@@ -277,7 +277,9 @@ function Clients() {
           <Select value={sortBy} onValueChange={(v) => setSortBy(v as ClientSort)}>
             <SelectTrigger className="w-40 border-indigo-500/20 focus:ring-indigo-500">
               <ArrowDownAZ className="mr-2 size-4 text-muted-foreground" />
-              <SelectValue placeholder="Ordenar" />
+              <SelectValue placeholder="Ordenar">
+                {(value) => ({ name: 'Nome (A-Z)', recent: 'Recentes' })[value as ClientSort] ?? 'Ordenar'}
+              </SelectValue>
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="name">Nome (A-Z)</SelectItem>
