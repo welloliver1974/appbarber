@@ -332,7 +332,7 @@ function Barbers() {
 
                   {/* ── Portfolio Photos ── */}
                   <div className="space-y-2">
-                    <FormLabel>Galeria de Trabalhos</FormLabel>
+                    <p className="text-sm font-medium text-muted-foreground">Galeria de Trabalhos</p>
                     {newPortfolioPhotos.length > 0 && (
                       <div className="grid grid-cols-3 gap-2">
                         {newPortfolioPhotos.map((url, idx) => (
