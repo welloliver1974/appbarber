@@ -464,20 +464,19 @@ src/
 ### ✅ Concluído (adicionado nesta atualização)
 - Deploy das variáveis de ambiente na Vercel (`VITE_ENABLE_BARBER_PUSH=true`, `VITE_VAPID_PUBLIC_KEY=...`).
 - Migrations de push aplicadas no Supabase (`20260730_create_push_subscriptions.sql`, `20260731_add_notifications_enabled_to_barbers.sql`, `20260732_add_barber_push_trigger.sql`).
-- Migration `is_combo` commitada (falta aplicar no Cloud).
+- Migration `is_combo` aplicada no Cloud (verificado via REST API em 2026-07-14).
 
 ### 🔧 Pendente / Bloqueado
-1. **Aplicar migration `is_combo` no Supabase Cloud** — arquivo já commitado (`supabase/migrations/20260711000000_add_is_combo_to_services.sql`), mas a coluna precisa existir em produção ou o save de serviços com Combo falha. Rodar `supabase db push` ou colar o SQL no SQL Editor.
-2. **Habilitar Realtime na tabela `appointments`** (se ainda não estiver) — adicionar à publication `supabase_realtime` no SQL Editor: `alter publication supabase_realtime add table appointments;`. O Dashboard (Sessão 28) já escuta o canal.
-3. **Testes automatizados** – adicionar testes unitários/integração para:  
+1. **Habilitar Realtime na tabela `appointments`** (confirmar/executar) — adicionar à publication `supabase_realtime` no SQL Editor: `alter publication supabase_realtime add table appointments;`. O Dashboard (Sessão 28) já escuta o canal.
+2. **Testes automatizados** – adicionar testes unitários/integração para:  
    - Criação de serviço com `is_combo`.  
    - Fluxo de push (subscribe → trigger → receive).  
    - RLS multi-tenant (admin vs cliente vs anon).  
-4. **Documentação de setup local** – criar/atualizar `SETUP.md` ou `README` com:  
+3. **Documentação de setup local** – criar/atualizar `SETUP.md` ou `README` com:  
    - Criação do bucket `gallery` e policies de Storage.  
    - Inserção das VAPID keys no Supabase Edge Function secrets.  
    - Como rodar `supabase db push` / `supabase functions deploy`.  
-5. **Changelog resumido** – opcional `CHANGELOG.md` com versões (v1.0, v1.1 …) para leitura rápida por humanos/IA.  
+4. **Changelog resumido** – opcional `CHANGELOG.md` com versões (v1.0, v1.1 …) para leitura rápida por humanos/IA.  
 
 ### 📌 Como a IA deve proceder
 - Ler este bloco para saber o que **já está pronto** (✅) e o que **falta** (🔧).  

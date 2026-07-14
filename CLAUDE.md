@@ -3,9 +3,13 @@
 > 🚨 **IMPORTANT**: READ THIS BEFORE TAKING ANY ACTION.
 > Any AI agent accessing this codebase MUST follow this guide. Do not reverse, rewrite, or roll back features from completed sessions.
 
-## Current State (Session 30 Complete — Fix i18n dos filtros)
+## Current State (Sessão 31 — Docs atualizados em 2026-07-14)
 
 All code fully written, validated with `npm run build`.
+
+### Documentação atualizada (2026-07-14)
+- **ROADMAP.md**, **CLAUDE.md**, **AGENTS.md** tiveram itens já concluídos movidos para ✅ e pendências reais reordenadas por prioridade.
+- **Verificação**: migration `is_combo` confirmada como aplicada no Cloud via REST API — coluna ativa e funcional.
 
 ### Completed in Session 30 — Tradução dos labels de filtro (2026-07-11)
 - **Problema**: seletores de filtro/ordenação em Serviços, Barbeiros e Clientes exibiam o valor bruto em inglês (`all`/`active`/`inactive`/`name`/`recent`) quando uma opção estava selecionada. `Select.Value` do `@base-ui/react/select` mostra o `value`, não o label do `SelectItem`.
@@ -15,13 +19,6 @@ All code fully written, validated with `npm run build`.
   - `src/pages/Clients.tsx`: `{ name: 'Nome (A-Z)', recent: 'Recentes' }`
 - **Padrão**: sempre que usar `<SelectValue>` com valores em inglês, passar children função para exibir o label pt-BR (mesmo bug da Sessão 14 no Dashboard).
 - **Build**: ✅ `npm run build` validado. Commit `dcf341d`.
-
-### Completed in Session 17 — FEAT-5: `price_at_booking` + Faturamento na Dashboard (2026-07-10)
-- **Migration**: `20260710170000_add_price_at_booking.sql` — `ALTER TABLE appointments ADD COLUMN price_at_booking NUMERIC(10,2)`
-- **`database.ts`**: `price_at_booking: number | null` adicionado na interface `Appointment`
-- **`Appointments.tsx`**: salva `price_at_booking: selectedService?.price` no insert
-- **`Booking.tsx`**: salva `price_at_booking: selectedService?.price` no insert
-- **`PublicSite.tsx`**: salva `totalPrice` (soma dos serviços) como `price_at_booking`
 
 ### Completed in Session 17 — FEAT-5: `price_at_booking` + Faturamento na Dashboard (2026-07-10)
 - **Migration**: `20260710170000_add_price_at_booking.sql` — `ALTER TABLE appointments ADD COLUMN price_at_booking NUMERIC(10,2)`
@@ -43,7 +40,7 @@ Todas as features de produto do roadmap (FEAT-4, FEAT-5, FEAT-6) já estão **IM
 
 Outros itens do roadmap STEP 6 também já concluídos: lazy loading (`App.tsx`), busca de clientes por telefone (`Clients.tsx`), push notifications (Sessão 21), download `.ics` (Sessão 25), ajuste de layout da confirmação (Sessão 26).
 
-**Pendências reais restantes** (ver `AGENTS.md`): aplicar migration `is_combo` no Cloud, adicionar `ErrorBoundary` (feito Sessão 27), Realtime no Dashboard, documentação `SETUP.md`/`CHANGELOG.md`, testes automatizados.
+**Pendências reais restantes** (ver `AGENTS.md`): confirmar Realtime na tabela `appointments`, documentação `SETUP.md`/`CHANGELOG.md`, testes automatizados, features (copiar horários, dashboard admin global, exportar relatórios, TanStack Query).
 
 ## Current State (Session 16 Complete — Fix 8 Bugs Técnicos)
 
@@ -162,28 +159,30 @@ Após o push, a Vercel faz o deploy automaticamente via webhook. Se não atualiz
 
 ### STEP 6: Melhorias Futuras (após fechar roadmap)
 
-**Site Público:**
-- Depoimentos dinâmicos (hoje são fixos no código `TESTIMONIALS`)
-- Portfólio de fotos por barbeiro
-- Link "Agendar" direto pro WhatsApp da barbearia como fallback
-- Página de confirmação com opção "Adicionar ao calendário" (.ics)
+**✅ Já concluídos (docs desatualizados):**
+- ~~Depoimentos dinâmicos~~ → ✅ Dinâmico via tabela `testimonials`
+- ~~Portfólio de fotos por barbeiro~~ → ✅ `photo_url` já exibido no site público
+- ~~Link WhatsApp fallback~~ → ✅ Link `wa.me` já implementado
+- ~~Download .ics~~ → ✅ Implementado (Sessão 25)
+- ~~Notificações browser~~ → ✅ Push notifications via PWA (Sessão 21)
+- ~~Upload logo ShopSettings~~ → ✅ Já integrado no form
+- ~~Lazy loading~~ → ✅ `React.lazy()` em todas as rotas
+- ~~Error boundaries~~ → ✅ ErrorBoundary global (Sessão 27)
+- ~~Busca clientes por telefone~~ → ✅ Implementado em `Clients.tsx`
+- ~~Realtime no Dashboard~~ → ✅ Implementado (Sessão 28)
+
+**❌ Pendentes reais:**
 
 **Admin:**
 - Dashboard global do admin (visão de todas as lojas + métricas consolidadas)
-- Notificações no browser (Service Worker) quando cliente agenda
 - Botão "duplicar horários da semana" nos barbeiros (copiar configuração de um dia pra outro)
 - Exportar relatórios pra CSV/PDF
-- Upload de logo integrado no ShopSettings (já tem o bucket, falta hook no form)
 
 **Técnico:**
-- Lazy loading com `React.lazy()` + `Suspense` (já tem warning de chunk de 938KB)
-- React Query / TanStack Query para cache e refetch automático
-- Error boundaries por página (hoje um erro inesperado quebra o app inteiro)
+- TanStack React Query para cache e refetch automático
 - Testes automatizados (vitest + playwright)
 
 **Qualidade de Vida:**
-- Busca de clientes por telefone
-- Tempo real via Supabase Realtime (dashboard atualizar sozinho)
 - Atalhos de teclado (ex: `N` pra novo agendamento)
 - Confirmação ao sair de formulários com dados não salvos
 - Paginação em listas longas (clientes, agendamentos)

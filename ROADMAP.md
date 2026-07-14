@@ -25,72 +25,66 @@
 - **Sessão 18:** Upload de logo + auto-save hero/galeria
 - **Sessão 19:** Fechado nos horários, badge Premium, Waze, telefone fix
 - **Sessão 21:** Notificações push (Web Push) apenas para barbeiros — PWA, Service Worker, Edge Function `notify-barber-push`, migrações `push_subscriptions` e `notifications_enabled`, deploy completo, VAPID configurado (2026‑07‑11)
+- **Sessão 25/26:** Download .ics na confirmação do booking + ajuste layout confirmação
+- **Sessão 27:** ErrorBoundary global
+- **Sessão 28:** Realtime no Dashboard + busca clientes por telefone
+- **Sessão 30:** Tradução labels de filtro (i18n)
+- **Depoimentos dinâmicos:** Substituído `TESTIMONIALS` fixo por dados da tabela `testimonials`
+- **Portfólio barbeiros:** `photo_url` já exibido no site público
+- **WhatsApp fallback:** Link `wa.me` já exibido quando não há phone/whatsapp config
+- **Upload logo ShopSettings:** Implementado com `uploadLogoPhoto`
+- **Migration `is_combo`:** Aplicada no Cloud — coluna ativa e funcional (verificado em 2026-07-14)
 
 ---
 
 ## 📋 Pendências (ordenadas por prioridade)
 
-### 1. 🟢 Site Público — Depoimentos Dinâmicos
-
-| Arquivo | O que fazer |
-|---|---|
-| `src/pages/PublicSite.tsx` | Substituir `TESTIMONIALS` fixo por dados do banco. Criar tabela `testimonials` (shop_id, name, text, rating, date). Adicionar CRUD no admin. |
-
-### 2. 🟢 Site Público — Portfólio de Fotos por Barbeiro
-
-| Arquivo | O que fazer |
-|---|---|
-| `src/pages/PublicSite.tsx` | Na seção de barbeiros, mostrar `barber.photo_url` + mini galeria de fotos associadas ao barbeiro |
-| `src/lib/public-site.ts` | Incluir `photo_url` na query de barbers |
-| Tabela `barbers` | Já tem `photo_url` — só falta exibir |
-
-### 3. 🟢 Site Público — Link WhatsApp Fallback
-
-| Arquivo | O que fazer |
-|---|---|
-| `src/pages/PublicSite.tsx` | Se a Evolution API estiver fora, exibir botão "Agendar via WhatsApp" com link `wa.me` |
-
-### 4. 🟢 Admin — Duplicar Horários da Semana
+### 1. 🟢 Admin — Duplicar Horários da Semana
 
 | Arquivo | O que fazer |
 |---|---|
 | `src/pages/Barbers.tsx` | Botão "Copiar horários" que duplica os horários de um dia para os outros dias da semana |
 
-### 5. 🟢 Admin — Dashboard Global
+### 2. 🟢 Admin — Dashboard Global
 
 | Arquivo | O que fazer |
 |---|---|
 | `src/pages/AdminPage.tsx` | Adicionar métricas consolidadas de todas as lojas (total agendamentos, faturamento, clientes ativos) |
 
-### 6. 🟢 Técnico — Lazy Loading
-
-| Arquivo | O que fazer |
-|---|---|
-| `src/App.tsx` | Envolver páginas com `React.lazy()` + `Suspense` para reduzir chunk inicial (938KB) |
-
-### 7. 🟡 Qualidade de Vida
+### 3. 🟢 Admin — Exportar Relatórios CSV/PDF
 
 | Item | O que fazer |
 |---|---|
-| Busca clientes por telefone | Adicionar input de busca por `phone` em `Clients.tsx` |
+| `src/pages/Reports.tsx` | Adicionar botão de exportação |
+
+### 4. 🟢 Infra — SETUP.md + Changelog
+
+| Item | O que fazer |
+|---|---|
+| `SETUP.md` | Documentar setup local: bucket gallery, VAPID keys, migrations, edge functions |
+| `CHANGELOG.md` | Criar changelog resumido com versões (v1.0, v1.1...) |
+
+### 5. 🟡 Qualidade de Vida
+
+| Item | O que fazer |
+|---|---|
 | Atalhos de teclado | `N` = novo agendamento, `S` = salvar, etc. |
 | Paginação | Em listas longas (clientes, agendamentos) |
+| Confirmação ao sair | De formulários com dados não salvos |
 
-### 8. 🟡 Admin — Exportar Relatórios
-
-| Item | O que fazer |
-|---|---|
-| CSV / PDF | Adicionar botão de exportação em `Reports.tsx` |
-
-### 9. ✅ Admin — Notificações Browser (concluída em 2026‑07‑11)
-
-> Implementado como PWA com Web Push (Service Worker). Notificações são enviadas apenas para barbeiros que ativam a opção na página de “Barbeiros” → “Ativar notificações de navegador”. Detalhes no CLAUDE.md e no README.
-
-### 10. 🔵 Site Público — Calendário .ics
+### 6. 🟡 Técnico — TanStack React Query
 
 | Item | O que fazer |
 |---|---|
-| Página de confirmação | Adicionar botão "Adicionar ao calendário" gerando arquivo .ics |
+| Cache e refetch automático | Substituir `useEffect` + `useState` por queries gerenciadas |
+
+### 7. 🔵 Testes Automatizados
+
+| Item | O que fazer |
+|---|---|
+| Unitários (vitest) | Testar criação de serviço com `is_combo`, RLS multi-tenant |
+| Push notification flow | Subscribe → trigger → receive |
+| Playwright (E2E) | Fluxos críticos (booking, login admin, cancelamento) |
 
 ---
 
