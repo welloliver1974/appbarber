@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "skills": {
+    "self-learning": {
+      "source": "kulaxyz/self-learning-skills",
+      "sourceType": "github",
+      "skillPath": "skills/self-learning/SKILL.md",
+      "computedHash": "bdeb31d23d5ded423e04b10c47aecf982bf133b9f1047f087ccfb4723c88d65f"
+    }
+  }
+}
